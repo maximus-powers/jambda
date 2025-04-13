@@ -103,10 +103,9 @@ function convertFunctionToLambda(func: estree.FunctionDeclaration): string {
   const bodyExpr = processBlock(func.body, scope, true);
   
   // Construct the lambda expression with parameters using standard lambda calculus notation
-  // Format: λx.λy.λz.expr with Unicode lambda
-  // For consistency with the visualizer, we'll use backslash notation with arrow format
-  const lambdaParams = params.map(param => `\\${param}`).join(' -> ');
-  return `${lambdaParams} -> ${bodyExpr}`;
+  // Format: λx.λy.λz.expr with Unicode lambda and dot notation
+  const lambdaParams = params.map(param => `λ${param}`).join('.');
+  return `${lambdaParams}.${bodyExpr}`;
 }
 
 /**

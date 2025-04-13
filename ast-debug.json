@@ -11,10 +11,6 @@
         {
           "type": "Identifier",
           "name": "c"
-        },
-        {
-          "type": "Identifier",
-          "name": "b"
         }
       ],
       "body": {
@@ -24,14 +20,33 @@
             "type": "ReturnStatement",
             "argument": {
               "type": "BinaryExpression",
-              "operator": "*",
+              "operator": "+",
               "left": {
-                "type": "Identifier",
-                "name": "c"
+                "type": "BinaryExpression",
+                "operator": "/",
+                "left": {
+                  "type": "BinaryExpression",
+                  "operator": "*",
+                  "left": {
+                    "type": "Identifier",
+                    "name": "c"
+                  },
+                  "right": {
+                    "type": "Literal",
+                    "value": 9,
+                    "raw": "9"
+                  }
+                },
+                "right": {
+                  "type": "Literal",
+                  "value": 5,
+                  "raw": "5"
+                }
               },
               "right": {
-                "type": "Identifier",
-                "name": "b"
+                "type": "Literal",
+                "value": 32,
+                "raw": "32"
               }
             }
           }
