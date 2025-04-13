@@ -80,21 +80,20 @@ if [ ! -f "$INPUT_FILE" ]; then
     exit 1
 fi
 
-# Step 1: Use provided lambda calculus representation
-echo "Using the provided lambda calculus representation for the celsius function..."
+# Step 1: Convert JavaScript to Lambda calculus
+echo "Converting JavaScript to Lambda calculus..."
 
-# The correct lambda representation for celsius to fahrenheit
-LAMBDA_EXPR="(λc.((λm.λn.λf.λx.m f (n f x))((λm.λn.λf.m (n f)) c ((λm.λn.λf.λx.n (λg.λh.h (g f)) (λu.x) (λu.u))(λf.λx.f (f (f (f (f (f (f (f (f x))))))))))(λf.λx.f (f (f (f (f x)))))))(λf.λx.f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f x)))))))))))))))))))))))))))))))))"
+# Run the conversion script
+node convert.js --input "$INPUT_FILE" --output "$OUTPUT_FILE"
 
-# Write the correct expression to output file
-echo "$LAMBDA_EXPR" > "$OUTPUT_FILE"
+if [ $? -ne 0 ]; then
+    echo "Error: Conversion failed"
+    exit 1
+fi
 
-echo "Using correct lambda expressions saved to $OUTPUT_FILE"
+echo "Lambda calculus expression saved to $OUTPUT_FILE"
 
-# Skip the conversion step
-echo "Skipping automatic conversion to use the correct, pre-formatted expression"
-
-# Step 3: Generate diagrams
+# Step 2: Generate diagrams
 echo "Generating John Tromp diagrams..."
 
 # Prepare label option

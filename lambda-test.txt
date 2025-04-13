@@ -1,4 +1,0 @@
-λx.x
-λf.λx.f (f x)
-λf.λg.λx.f (g x)
-(λx.x x) (λx.x x)

@@ -1,3 +1,3 @@
-function celsiusToFahrenheit(celsius) {
-    return (celsius * 9/5) + 32;
+function celsiusToFahrenheit(c) {
+    return (c * 9/5) + 32;
 }
