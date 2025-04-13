@@ -1,0 +1,8 @@
+{
+	"dependencies": {
+		"archiver": "^7.0.1",
+		"js-to-lambda": "^0.4.0",
+		"uglify-js": "^3.19.3",
+		"underscore": "^1.13.7"
+	}
+}
