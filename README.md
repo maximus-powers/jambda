@@ -1,6 +1,6 @@
 # Jambda - JavaScript to Lambda Calculus Converter
 
-Jambda is a tool that converts JavaScript functions to Lambda Calculus notation. It parses JavaScript code and generates equivalent lambda calculus expressions with proper mathematical notation.
+Jambda is a tool that converts JavaScript functions to Lambda Calculus notation. It parses JavaScript code and generates equivalent lambda calculus expressions with proper mathematical notation and visualizes them as John Tromp diagrams.
 
 ## Features
 
@@ -13,12 +13,29 @@ Jambda is a tool that converts JavaScript functions to Lambda Calculus notation.
   - Math constants (Math.PI)
   - Nested functions and scopes
 - Formats output in standard mathematical lambda calculus notation
+- Visualizes lambda expressions as authentic John Tromp diagrams (SVG and PNG formats)
+  - High-resolution diagrams with dark background
+  - Rich color-coded diagram elements:
+    - Red lines for lambda abstractions (λ)
+    - Green lines for variables
+    - Operator-specific colors:
+      - Cyan for addition (+)
+      - Purple for subtraction (-)
+      - Orange for multiplication (*)
+      - Yellow for division (/)
+      - Pink for math functions
+      - Blue-gray for general applications
+  - Color-matched term labels for improved readability:
+    - Variable names in green
+    - Lambda abstractions with variable names in red
+    - Operation symbols in their respective colors
+    - Numeric constants fully expanded as Church numerals with distinctive purple coloring
 
 ## Installation
 
 ```bash
 # Clone the repository (or download it)
-git clone https://github.com/yourusername/jambda.git
+git clone https://github.com/maximuspowers/jambda.git
 cd jambda
 
 # Install dependencies
@@ -42,6 +59,36 @@ chmod +x convert-and-format.sh
 ```
 
 If no arguments are provided, it reads from `input.js` and outputs to `lambda-formatted.txt`.
+
+### Visualization
+
+To generate John Tromp diagrams from lambda calculus expressions:
+
+```bash
+# Make the script executable first
+chmod +x convert-and-visualize.sh
+
+# Convert JavaScript to lambda calculus and generate diagrams
+./convert-and-visualize.sh [input-file] [output-dir] [format]
+```
+
+If no arguments are provided, it reads from `input.js`, generates lambda calculus, and outputs diagrams to the `diagrams` directory in SVG format.
+
+You can also run the visualizer directly on lambda calculus expressions:
+
+```bash
+node visualize.js --input lambda-formatted.txt --output diagrams --format svg --style standard
+```
+
+Options:
+- `--input, -i`: Input file path containing lambda expressions (default: lambda-formatted.txt)
+- `--output, -o`: Output directory for diagrams (default: diagrams)
+- `--format, -f`: Output format: svg (default) or png
+- `--width, -w`: Width of the diagram in pixels (default: 1200)
+- `--height`: Height of the diagram in pixels (default: 800)
+- `--labels, -l`: Show term labels in the diagram
+- `--show-app-symbols`: Show application (@) symbols in the diagram
+- `--hide-app-symbols`: Hide application (@) symbols (default)
 
 ### Manual Usage
 
@@ -160,6 +207,9 @@ Lambda calculus notation:
 - `convert.js` - Main conversion script
 - `lambda-format.js` - Formatter for lambda calculus notation
 - `run-examples.js` - Runs multiple examples
+- `visualize.js` - Generates John Tromp diagrams from lambda expressions
+- `convert-and-format.sh` - Script to convert JS to formatted lambda calculus
+- `convert-and-visualize.sh` - Script to convert JS and generate diagrams
 - `lib/` - Contains the core conversion logic:
   - `index.js` - Entry point for the converter
   - `body-parser.js` - Parses function bodies
@@ -167,12 +217,17 @@ Lambda calculus notation:
   - `operators.js` - Handles mathematical operations
   - `node-parser.js` - Parses AST nodes
   - `return-parser.js` - Parses return statements
+  - `visualizer/` - Contains diagram generation logic:
+    - `parser.js` - Parses lambda expressions into AST
+    - `tromp-diagram.js` - Generates authentic John Tromp diagrams
+    - `visualize.js` - Main visualization module
 
 ## Limitations
 
 - Does not handle all JavaScript features (loops, conditionals, objects)
 - Arithmetic operations are represented as function applications, not true lambda calculus encodings
 - Does not perform beta/eta reductions on the output
+- Visualizer does not handle extremely complex lambda expressions well
 
 ## License
 
@@ -181,3 +236,5 @@ MIT License
 ## Acknowledgements
 
 Based on the js-to-lambda library with custom extensions to handle Math functions and formatting.
+
+John Tromp diagrams are based on the visual representation of lambda calculus developed by John Tromp. More information can be found in his paper "Functional Diagrams for Supercombinator Compilation".

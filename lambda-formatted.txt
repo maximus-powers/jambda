@@ -1,0 +1,1 @@
+λc.((λm.λn.λf.λx.m f (n f x))((λm.λn.λf.m (n f))((λn.λm.λf.λx.n (λg.λh.h (g f)) (λu.x) (λu.u))(λf.λx.f (f (f (f (f (f (f (f (f x))))))))))(λf.λx.f (f (f (f (f x))))))c)(λf.λx.f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f (f x))))))))))))))))))))))))))))))))

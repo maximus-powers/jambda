@@ -1,5 +1,3 @@
-// Simple identity function
-// Try changing this function and running "node convert.js"
-function identity(x) {
-    return x;
+function celsiusToFahrenheit(celsius) {
+    return (celsius * 9/5) + 32;
 }
