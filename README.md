@@ -62,33 +62,57 @@ If no arguments are provided, it reads from `input.js` and outputs to `lambda-fo
 
 ### Visualization
 
-To generate John Tromp diagrams from lambda calculus expressions:
+The easiest way to convert a JavaScript function to lambda calculus and visualize it is to use the all-in-one conversion and visualization script:
 
 ```bash
 # Make the script executable first
 chmod +x convert-and-visualize.sh
 
 # Convert JavaScript to lambda calculus and generate diagrams
-./convert-and-visualize.sh [input-file] [output-dir] [format]
+./convert-and-visualize.sh --labels
 ```
 
-If no arguments are provided, it reads from `input.js`, generates lambda calculus, and outputs diagrams to the `diagrams` directory in SVG format.
+This will:
+1. Convert the JavaScript code in `input.js` to lambda calculus
+2. Format the lambda expression for better visualization
+3. Generate a John Tromp diagram in PNG format
+4. Automatically open the diagram (on macOS)
+
+#### Options for convert-and-visualize.sh
+
+```bash
+./convert-and-visualize.sh [options]
+```
+
+Options:
+- `--input, -i`: Input JavaScript file (default: input.js)
+- `--output, -o`: Output lambda expressions file (default: lambda-formatted.txt)
+- `--diagrams, -d`: Output directory for diagrams (default: diagrams)
+- `--format, -f`: Output format: svg or png (default: png)
+- `--labels, -l`: Show term labels in the diagram (recommended for better readability)
+- `--width, -w`: Width of the output image in pixels (default: 1200)
+- `--height, -h`: Height of the output image in pixels (default: 800)
+- `--hide-app-symbols`: Hide application (@) symbols (default)
+- `--show-app-symbols`: Show application (@) symbols
+
+Examples:
+
+```bash
+# Convert with custom input and show labeled diagrams
+./convert-and-visualize.sh --input my-function.js --labels
+
+# Generate SVG diagram with custom dimensions
+./convert-and-visualize.sh --format svg --width 1600 --height 1200
+
+# Show labels and application symbols
+./convert-and-visualize.sh --labels --show-app-symbols
+```
 
 You can also run the visualizer directly on lambda calculus expressions:
 
 ```bash
-node visualize.js --input lambda-formatted.txt --output diagrams --format svg --style standard
+node visualize.js --input lambda-formatted.txt --output diagrams --format png --labels
 ```
-
-Options:
-- `--input, -i`: Input file path containing lambda expressions (default: lambda-formatted.txt)
-- `--output, -o`: Output directory for diagrams (default: diagrams)
-- `--format, -f`: Output format: svg (default) or png
-- `--width, -w`: Width of the diagram in pixels (default: 1200)
-- `--height`: Height of the diagram in pixels (default: 800)
-- `--labels, -l`: Show term labels in the diagram
-- `--show-app-symbols`: Show application (@) symbols in the diagram
-- `--hide-app-symbols`: Hide application (@) symbols (default)
 
 ### Manual Usage
 

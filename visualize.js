@@ -67,6 +67,40 @@ if (!fs.existsSync(inputFile)) {
     process.exit(1);
 }
 
+// Read the lambda expressions from the file and normalize them
+function normalizeLambdaExpressions(filePath) {
+    try {
+        const content = fs.readFileSync(filePath, 'utf8');
+        
+        // For our specific use case, since we know the output format, 
+        // use a simpler approach: just use the content as-is initially
+        const expressions = [content.trim()];
+        
+        // Alternative approach: manually normalize the most common lambda calculus format
+        // to make it compatible with the parser
+        const manuallyNormalizedExpressions = expressions.map(expr => {
+            // Convert to standard lambda calculus notation
+            let normalized = expr;
+            
+            // Replace backslash lambda with Unicode lambda
+            normalized = normalized.replace(/\\/g, 'λ');
+            
+            // Replace any remaining arrow notation
+            normalized = normalized.replace(/->/g, '.');
+            
+            console.log(`Normalized expression (length: ${normalized.length}):`);
+            console.log(normalized.substring(0, 50) + '...');
+            
+            return normalized;
+        });
+        
+        return manuallyNormalizedExpressions;
+    } catch (error) {
+        console.error(`Error reading or normalizing file: ${error.message}`);
+        return [];
+    }
+}
+
 // Set visualization options
 const options = {
     outputDir: outputDir,
@@ -120,8 +154,38 @@ const options = {
 try {
     console.log(`Generating diagrams from ${inputFile}...`);
     
+    // Get normalized expressions
+    const expressions = normalizeLambdaExpressions(inputFile);
+    
+    if (expressions.length === 0) {
+        console.error('No valid lambda expressions found in the input file.');
+        process.exit(1);
+    }
+    
+    // Ensure output directory exists
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+    }
+    
     const visualizer = new LambdaVisualizer(options);
-    const outputPaths = visualizer.visualizeFromFile(inputFile, outputDir, format);
+    const outputPaths = [];
+    
+    // Process each expression individually
+    for (let i = 0; i < expressions.length; i++) {
+        const expr = expressions[i];
+        const outputPath = path.join(outputDir, `diagram_${i + 1}.${format}`);
+        
+        try {
+            console.log(`Generating diagram for expression ${i + 1}...`);
+            visualizer.visualize(expr, outputPath, format);
+            outputPaths.push(outputPath);
+            console.log(`  → Generated ${outputPath}`);
+        } catch (error) {
+            console.error(`Error generating diagram for expression ${i + 1}:`, error.message);
+            console.error(`  → Expression: ${expr}`);
+            // Continue with next expression
+        }
+    }
     
     console.log(`Generated ${outputPaths.length} diagram(s) in ${outputDir}`);
     outputPaths.forEach(path => console.log(` - ${path}`));
