@@ -3,7 +3,7 @@
 # Convert and visualize JavaScript functions as lambda calculus expressions
 
 # Default parameters
-INPUT_FILE="input.js"
+INPUT_FILE="input.ts"
 OUTPUT_FILE="lambda-formatted.txt"
 DIAGRAM_DIR="diagrams"
 FORMAT="png"
@@ -55,7 +55,7 @@ while [[ $# -gt 0 ]]; do
             echo "Usage: ./convert-and-visualize.sh [options]"
             echo ""
             echo "Options:"
-            echo "  --input, -i          Input JavaScript file (default: input.js)"
+            echo "  --input, -i          Input file (default: input.ts)"
             echo "  --output, -o         Output lambda expressions file (default: lambda-formatted.txt)"
             echo "  --diagrams, -d       Output directory for diagrams (default: diagrams)"
             echo "  --format, -f         Output format: svg or png (default: png)"
@@ -80,11 +80,11 @@ if [ ! -f "$INPUT_FILE" ]; then
     exit 1
 fi
 
-# Step 1: Convert JavaScript to Lambda calculus
-echo "Converting JavaScript to Lambda calculus..."
+# Step 1: Convert TypeScript to Lambda calculus
+echo "Converting TypeScript to Lambda calculus..."
 
 # Run the conversion script
-node convert.js --input "$INPUT_FILE" --output "$OUTPUT_FILE"
+npx ts-node convert.ts --input "$INPUT_FILE" --output "$OUTPUT_FILE"
 
 if [ $? -ne 0 ]; then
     echo "Error: Conversion failed"
@@ -112,7 +112,7 @@ fi
 
 # Generate diagrams
 mkdir -p "$DIAGRAM_DIR"
-node visualize.js --input "$OUTPUT_FILE" --output "$DIAGRAM_DIR" --format "$FORMAT" \
+npx ts-node lib/visualizer/visualize.ts --input "$OUTPUT_FILE" --output "$DIAGRAM_DIR" --format "$FORMAT" \
     --width "$WIDTH" --height "$HEIGHT" $LABEL_OPT $APP_SYMBOLS_OPT
 
 if [ $? -ne 0 ]; then

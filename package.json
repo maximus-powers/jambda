@@ -1,9 +1,31 @@
 {
+	"scripts": {
+		"build": "tsc",
+		"lint": "eslint . --ext .ts",
+		"start": "node dist/convert.js",
+		"convert": "ts-node convert.ts",
+		"visualize": "ts-node lib/visualizer/visualize.ts",
+		"pipeline": "./convert-and-visualize.sh"
+	},
 	"dependencies": {
+		"@types/esprima": "^4.0.6",
 		"archiver": "^7.0.1",
+		"esprima": "^4.0.1",
 		"js-to-lambda": "^0.4.0",
 		"sharp": "^0.34.1",
+		"typescript": "^5.8.3",
 		"uglify-js": "^3.19.3",
 		"underscore": "^1.13.7"
+	},
+	"devDependencies": {
+		"@types/archiver": "^6.0.3",
+		"@types/estree": "^1.0.7",
+		"@types/node": "^22.14.1",
+		"@types/uglify-js": "^3.17.5",
+		"@types/underscore": "^1.13.0",
+		"@typescript-eslint/eslint-plugin": "^8.29.1",
+		"@typescript-eslint/parser": "^8.29.1",
+		"eslint": "^9.24.0",
+		"ts-node": "^10.9.2"
 	}
 }
