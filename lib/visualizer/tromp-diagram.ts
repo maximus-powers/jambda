@@ -2,8 +2,9 @@
  * John Tromp Lambda Diagram Generator
  * Ported from the Haskell implementation to TypeScript
  */
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
+// Import sharp in a way that works with both ESM and CommonJS modules
 import sharp from 'sharp';
 import { Parser } from './parser';
 
@@ -39,6 +40,7 @@ export class Term {
   numValue?: number;
   operation?: string;
   churchParent?: Term;
+  // Term properties only needed for structure representation
 
   constructor(type: TermType, data?: number | Term | TermData) {
     this.type = type;
@@ -106,7 +108,7 @@ interface ParsedTerm {
 /**
  * Convert a parsed term to our internal representation
  */
-function convertParsedTerm(parsedTerm: ParsedTerm): Term {
+function convertParsedTerm(parsedTerm: ParsedTerm, generator?: TrompDiagramGenerator): Term {
   if (parsedTerm.type === 'variable') {
     // Create a variable term with its De Bruijn index
     const variable = new Term(TermType.VAR, 0); // Default to 0, will be updated
@@ -123,10 +125,14 @@ function convertParsedTerm(parsedTerm: ParsedTerm): Term {
     return variable;
   } else if (parsedTerm.type === 'abstraction' && parsedTerm.body) {
     // Create a lambda abstraction
-    const body = convertParsedTerm(parsedTerm.body);
+    const body = convertParsedTerm(parsedTerm.body, generator);
     const lambda = new Term(TermType.LAM, body);
     // Store the variable name for labeling
     lambda.variable = parsedTerm.variable;
+    
+    // Generate a unique ID for this lambda abstraction
+    const varName = lambda.variable || 'x';
+    lambda.binderId = `lambda-${varName}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     
     // Set parent reference
     body.parent = lambda;
@@ -134,8 +140,8 @@ function convertParsedTerm(parsedTerm: ParsedTerm): Term {
     return lambda;
   } else if (parsedTerm.type === 'application' && parsedTerm.left && parsedTerm.right) {
     // Create an application
-    const func = convertParsedTerm(parsedTerm.left);
-    const arg = convertParsedTerm(parsedTerm.right);
+    const func = convertParsedTerm(parsedTerm.left, generator);
+    const arg = convertParsedTerm(parsedTerm.right, generator);
     const app = new Term(TermType.APP, { func, arg });
     
     // Set parent references
@@ -147,6 +153,9 @@ function convertParsedTerm(parsedTerm: ParsedTerm): Term {
       // Store the operation name (like +, -, *, /)
       app.operation = func.name;
     }
+    
+    // Generate a unique ID for this application
+    app.appId = `app-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     
     return app;
   }
@@ -214,7 +223,7 @@ function createChurchNumeral(n: number): Term {
  * Update variable indices to use De Bruijn notation
  * This is crucial for connecting variables to their binding lambdas in the diagram
  */
-function assignIndices(term: Term, depth = 0, env = new Map<string, number>()): Term {
+function assignIndices(term: Term, depth = 0, env = new Map<string, number>(), binderIds = new Map<number, string>()): Term {
   if (term.type === TermType.VAR) {
     const name = term.name || 'x'; // Use variable name if available
     if (env.has(name)) {
@@ -222,12 +231,23 @@ function assignIndices(term: Term, depth = 0, env = new Map<string, number>()): 
       const envValue = env.get(name);
       if (envValue !== undefined) {
         term.index = depth - envValue - 1;
+        
+        // Look up the binder ID for this variable
+        const bindingDepth = envValue;
+        if (binderIds.has(bindingDepth)) {
+          term.binderId = binderIds.get(bindingDepth);
+        }
       }
     } else {
       // Free variable (no binding lambda in scope)
       term.index = 0;
     }
   } else if (term.type === TermType.LAM && term.body) {
+    // Generate a unique ID for this lambda abstraction for coloring
+    if (!term.binderId) {
+      term.binderId = `lambda-${term.variable || 'x'}-${depth}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    }
+    
     // Create a new environment for the lambda body
     const newEnv = new Map(env);
     const varName = term.variable || 'x';
@@ -235,12 +255,16 @@ function assignIndices(term: Term, depth = 0, env = new Map<string, number>()): 
     // Register this lambda's variable in the environment
     newEnv.set(varName, depth);
     
+    // Store this lambda's binder ID for variables to reference
+    const newBinderIds = new Map(binderIds);
+    newBinderIds.set(depth, term.binderId);
+    
     // Process the body with the updated environment
-    assignIndices(term.body, depth + 1, newEnv);
+    assignIndices(term.body, depth + 1, newEnv, newBinderIds);
   } else if (term.type === TermType.APP && term.func && term.arg) {
     // Process both sides of the application with the same environment
-    assignIndices(term.func, depth, env);
-    assignIndices(term.arg, depth, env);
+    assignIndices(term.func, depth, env, binderIds);
+    assignIndices(term.arg, depth, env, binderIds);
   }
   
   // Special processing for Church numerals
@@ -305,8 +329,6 @@ export class TrompDiagramGenerator {
   options: Required<TrompDiagramOptions>;
   labelPositions: BoundingBox[];
   seenOperations: Set<string>;
-  componentColors: Map<string, string>;
-  colorIndex: number;
 
   constructor(options: TrompDiagramOptions = {}) {
     this.options = {
@@ -315,19 +337,8 @@ export class TrompDiagramGenerator {
       padding: options.padding || 60,           // More padding
       backgroundColor: options.backgroundColor || '#000000',
       
-      // Color palette for individual components
-      colors: options.colors || [
-        '#ff5555',  // Red
-        '#8be9fd',  // Cyan
-        '#50fa7b',  // Green
-        '#ffb86c',  // Orange
-        '#bd93f9',  // Purple
-        '#ff79c6',  // Pink
-        '#f1fa8c',  // Yellow
-        '#5af78e',  // Bright Green
-        '#57c7ff',  // Light Blue
-        '#ff6ac1'   // Bright Pink
-      ],
+      // Keep colors option for compatibility
+      colors: options.colors || ['#000000'],
       
       // Special colors for specific elements
       textColor: options.textColor || '#f8f8f2',          // Light text color
@@ -355,114 +366,13 @@ export class TrompDiagramGenerator {
     
     // Store seen operations to differentiate between nested applications
     this.seenOperations = new Set<string>();
-    
-    // Track component colors for consistent coloring
-    this.componentColors = new Map<string, string>();
-    
-    // Color index for assigning colors to components
-    this.colorIndex = 0;
   }
 
   /**
-   * Get a color for a component based on its role
+   * Simplified method for component color - always returns black
    */
-  getComponentColor(componentType: string, term?: Term | null, binderId?: string | null): string {
-    // CASE 1: Lambda abstraction - always gets its own unique color
-    if (componentType === 'lambda') {
-      // Generate a unique ID for this lambda abstraction
-      const lambdaId = `lambda-${term && term.variable ? term.variable : ''}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-      
-      // Assign a unique color from our palette
-      const color = this.options.colors[this.colorIndex % this.options.colors.length];
-      this.colorIndex++;
-      
-      // Store for future reference - variables bound by this lambda will use this color
-      this.componentColors.set(lambdaId, color);
-      
-      // Save ID in the term for variables to reference
-      if (term) {
-        term.binderId = lambdaId;
-      }
-      
-      return color;
-    }
-    
-    // CASE 2: Variables should match their binding lambda's color
-    if (componentType === 'variable' && binderId && this.componentColors.has(binderId)) {
-      const color = this.componentColors.get(binderId);
-      return color !== undefined ? color : this.options.colors[0];
-    }
-    
-    // CASE 3: Applications should get their own color similar to the variable they extend from
-    if (componentType === 'application') {
-      // Try to use a color similar to the argument's variable if possible
-      let baseColor: string | null = null;
-      
-      if (term && term.arg && term.arg.type === TermType.VAR && term.arg.binderId) {
-        // If the argument is a variable, use a color similar to its binding lambda
-        if (this.componentColors.has(term.arg.binderId)) {
-          const color = this.componentColors.get(term.arg.binderId);
-          if (color !== undefined) {
-            baseColor = color;
-          }
-        }
-      }
-      // If no base color found, use next in palette
-      if (!baseColor) {
-        baseColor = this.options.colors[this.colorIndex % this.options.colors.length];
-        this.colorIndex++;
-      }
-      
-      // Create a unique ID for this application
-      const appId = `app-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-      
-      // Store this application's color for reference
-      this.componentColors.set(appId, baseColor);
-      
-      // If term is provided, store the app ID in the term
-      if (term) {
-        term.appId = appId;
-      }
-      
-      return baseColor;
-    }
-    
-    // Fallback - assign a new color
-    const defaultColor = this.options.colors[this.colorIndex % this.options.colors.length];
-    this.colorIndex++;
-    return defaultColor;
-  }
-  
-  /**
-   * Determine the semantic type of a term for coloring
-   */
-  _getSemanticType(term?: Term): string {
-    if (!term) return 'unknown';
-    
-    // Check for Church numerals
-    if (term.isChurchNumeral) {
-      return 'church-numeral';
-    }
-    
-    // Check for true/false
-    if (term.type === TermType.LAM && term.variable === 'x' && 
-        term.body && term.body.type === TermType.LAM && 
-        (term.body.variable === 'y' || term.body.variable === 'z')) {
-      
-      // Check if it's true (λx.λy.x) or false (λx.λy.y)
-      if (term.body.body && term.body.body.type === TermType.VAR) {
-        if (term.body.body.index === 1) {
-          return 'boolean-true';
-        } else if (term.body.body.index === 0) {
-          return 'boolean-false';
-        }
-      }
-      
-      return 'boolean';
-    }
-    
-    // Default to the term type
-    return term.type;
+  getComponentColor(): string {
+    return '#000000';
   }
   
   /**
@@ -473,16 +383,16 @@ export class TrompDiagramGenerator {
     // Reset state for each new diagram
     this.seenOperations = new Set();
     this.labelPositions = [];
-    this.componentColors = new Map();
-    this.colorIndex = 0;
     
-    // Parse the lambda expression
-    const parser = new Parser(lambdaExpression);
-    const parsedTerm = parser.parse();
-    
-    // Convert to our internal representation
-    const term = convertParsedTerm(parsedTerm);
-    assignIndices(term);
+    try {
+      // Parse the lambda expression
+      const parser = new Parser(lambdaExpression);
+      const parsedTerm = parser.parse();
+      
+      // Convert to our internal representation
+      // Pass 'this' to the convertParsedTerm function to access color palette
+      const term = convertParsedTerm(parsedTerm, this);
+      assignIndices(term);
     
     // Calculate raw dimensions based on term structure
     const dims = this.calculateDimensions(term);
@@ -560,6 +470,18 @@ export class TrompDiagramGenerator {
     this.options.unitSize = originalUnitSize;
     
     return svg;
+    
+    } catch (error) {
+      console.error('Error generating diagram:', error);
+      
+      // Return a simple error message as SVG
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${this.options.width}" height="${this.options.height}">
+               <rect width="${this.options.width}" height="${this.options.height}" fill="${this.options.backgroundColor}" />
+               <text x="50" y="50" fill="${this.options.textColor}" font-family="monospace" font-size="14">
+                 Error generating diagram: ${error instanceof Error ? error.message : String(error)}
+               </text>
+             </svg>`;
+    }
   }
 
   /**
@@ -653,9 +575,7 @@ export class TrompDiagramGenerator {
       // Calculate positions in proper Tromp diagram style
       const unitSize = this.options.unitSize;
       
-      // Get color for this lambda abstraction 
-      // This will also store the lambda's ID for variables to reference
-      const lambdaColor = this.getComponentColor('lambda', term);
+      const lineColor = '#000000';
       
       // Custom spacing with gaps between lambda abstractions
       // Make the binder slightly narrower than standard to create visual separation
@@ -671,7 +591,7 @@ export class TrompDiagramGenerator {
       // This is the defining visual characteristic of lambda terms in Tromp diagrams
       // Use a thicker line for better visibility and rounded ends
       let svg = `<line x1="${binderX}" y1="${binderY}" x2="${binderX + binderWidth}" y2="${binderY}" 
-               stroke="${lambdaColor}" stroke-width="${this.options.lineWidth * 1.2}" stroke-linecap="round" />`;
+               stroke="${lineColor}" stroke-width="${this.options.lineWidth * 1.2}" stroke-linecap="round" />`;
       
       // Add lambda symbol and variable name if labels are enabled
       if (this.options.showLabels) {
@@ -708,7 +628,7 @@ export class TrompDiagramGenerator {
             // Add the label with larger font and better visibility
             // Position text directly at the line's starting point
             svg += `<text x="${labelPos.x}" y="${labelPos.y}" font-family="monospace" font-size="14" 
-                  fill="${lambdaColor}" font-weight="bold">${labelText}</text>`;
+                  fill="${lineColor}" font-weight="bold">${labelText}</text>`;
           }
         }
       }
@@ -746,27 +666,19 @@ export class TrompDiagramGenerator {
       // Each variable's height is determined solely by its De Bruijn index
       const indexDistance = term.index !== undefined ? (term.index + 1) : 0; // De Bruijn index
       
-      // Determine the color - variables MUST match their binding lambda's color
-      let varColor;
-      
-      if (bindingLambda && bindingLambda.binderId) {
-        // Use the exact same color as the binding lambda by passing its ID
-        varColor = this.getComponentColor('variable', null, bindingLambda.binderId);
-      } else {
-        // For free variables (no binder found), use a default color
-        varColor = this.options.colors[0]; // Use first color as default
-      }
-      
-      // Following Haskell example exactly:
       // Variables should be drawn as vertical lines of the correct length
       // to connect to the binding lambda's horizontal bar
-      // Calculate the exact index distance and height needed
       const varHeight = indexDistance * unitSize;
       
-      // Draw the vertical line only - no horizontal connectors needed
-      // The correct height will ensure it visually connects to the lambda bar
-      let svg = `<line x1="${varX}" y1="${varY}" x2="${varX}" y2="${varY - varHeight}" 
-               stroke="${varColor}" stroke-width="${this.options.lineWidth}" />`;
+      // Create SVG for the variable
+      let svg = '';
+      
+      // Draw a simple black line for the variable
+      svg += `<line x1="${varX}" y1="${varY}" x2="${varX}" y2="${varY - varHeight}" 
+           stroke="#000000" stroke-width="${this.options.lineWidth}" stroke-linecap="round" />`;
+      
+      // Note: Variables don't need to handle application intersections here
+      // The application drawing code will handle drawing the extensions after intersection
       
       // Add variable labels if enabled
       if (this.options.showLabels) {
@@ -799,7 +711,7 @@ export class TrompDiagramGenerator {
           if (!labelPos.skip) {
             // Use the same color as the variable line with smaller font for less intrusion
             svg += `<text x="${labelPos.x}" y="${labelPos.y}" font-family="monospace" font-size="12" 
-                  fill="${varColor}" font-weight="bold">${labelText}</text>`;
+                  fill="#000000" font-weight="bold">${labelText}</text>`;
           }
         }
       }
@@ -829,8 +741,7 @@ export class TrompDiagramGenerator {
       // Unit size for precise positioning
       const unitSize = this.options.unitSize;
       
-      // Get a unique color for this application - each application bar should have its own color
-      const appColor = this.getComponentColor('application');
+      const lineColor = '#000000';
       
       // Start building the SVG
       let svg = '';
@@ -849,13 +760,14 @@ export class TrompDiagramGenerator {
       // Account for the horizontal gap in all positions
       const horizontalGap = unitSize * 1.2; // Same as used for lambda abstractions
       
+      // Vertical line for function side if needed (if function is shorter than argument)
       if (funcBottom < barY) {
         const funcVLineX = this.options.padding + horizontalGap; // Align with variables and lambda abstraction
         const funcVLineY = funcBottom;
         const funcVLineHeight = barY - funcBottom;
         
         svg += `<line x1="${funcVLineX}" y1="${funcVLineY}" x2="${funcVLineX}" y2="${funcVLineY + funcVLineHeight}" 
-              stroke="${appColor}" stroke-width="${this.options.lineWidth}" />`;
+              stroke="#000000" stroke-width="${this.options.lineWidth}" stroke-linecap="round" />`;
       }
       
       // Vertical line for argument side if needed (if argument is shorter than function)
@@ -866,7 +778,7 @@ export class TrompDiagramGenerator {
         const argVLineHeight = barY - argBottom;
         
         svg += `<line x1="${argVXPos}" y1="${argVLineY}" x2="${argVXPos}" y2="${argVLineY + argVLineHeight}" 
-              stroke="${appColor}" stroke-width="${this.options.lineWidth}" />`;
+              stroke="#000000" stroke-width="${this.options.lineWidth}" stroke-linecap="round" />`;
       }
       
       // Draw the horizontal connecting bar at the bottom-left corners
@@ -875,46 +787,29 @@ export class TrompDiagramGenerator {
       const barX = this.options.padding + horizontalGap; // Align with lambda abstractions
       const barWidth = 2 * w1 * unitSize; // Exactly 2 * function width
       
-      // Get colors for left and right terms to maintain consistent color per lambda abstraction
-      let leftTermColor = appColor;
-      if (term.func.type === TermType.LAM && term.func.binderId && this.componentColors.has(term.func.binderId)) {
-        const color = this.componentColors.get(term.func.binderId);
-        if (color !== undefined) {
-          leftTermColor = color;
-        }
-      }
-      
-      let rightTermColor = appColor;
-      if (term.arg.type === TermType.LAM && term.arg.binderId && this.componentColors.has(term.arg.binderId)) {
-        const color = this.componentColors.get(term.arg.binderId);
-        if (color !== undefined) {
-          rightTermColor = color;
-        }
-      }
-      
-      // Draw the application horizontal bar - simpler rendering following Haskell example
+      // Draw the application horizontal bar 
       svg += `<line x1="${barX}" y1="${barY}" x2="${barX + barWidth}" y2="${barY}" 
-            stroke="${appColor}" stroke-width="${this.options.lineWidth}" />`;
+            stroke="#000000" stroke-width="${this.options.lineWidth}" stroke-linecap="round" />`;
       
-      
-      // Add vertical connection lines for applications to the functions they come from
       // 1. Left vertical connection - from the application bar up to its function
+      // This line should be in the application's color as it's after the intersection
       const funcConnectionX = barX; // Left edge of horizontal bar
       const funcConnectionY1 = barY; // Start at the horizontal bar
       const funcConnectionY2 = Math.max(0, funcBottom - unitSize); // Go up to near the function
       
-      // Draw this vertical line in the same color as the application
+      // Draw a vertical line for function connection
       svg += `<line x1="${funcConnectionX}" y1="${funcConnectionY1}" x2="${funcConnectionX}" y2="${funcConnectionY2}" 
-            stroke="${appColor}" stroke-width="${this.options.lineWidth}" />`;
+            stroke="#000000" stroke-width="${this.options.lineWidth}" stroke-linecap="round" />`;
       
       // 2. Right vertical connection - from the application bar up to its input argument
+      // This line should be in the application's color as it's after the intersection
       const argConnectionX = barX + barWidth; // Right edge of horizontal bar
       const argConnectionY1 = barY; // Start at the horizontal bar
       const argConnectionY2 = Math.max(0, argBottom - unitSize); // Go up to near the argument
       
-      // Draw this vertical line in the same color as the application
+      // Draw a vertical line for argument connection
       svg += `<line x1="${argConnectionX}" y1="${argConnectionY1}" x2="${argConnectionX}" y2="${argConnectionY2}" 
-            stroke="${appColor}" stroke-width="${this.options.lineWidth}" />`;
+            stroke="#000000" stroke-width="${this.options.lineWidth}" stroke-linecap="round" />`;
       
       // Add the function term SVG
       svg += func.svg;
@@ -963,6 +858,9 @@ export class TrompDiagramGenerator {
    * Helper function to translate SVG content by x, y
    */
   _translateSVG(svg: string, x: number, y: number): string {
+    // For an empty svg, just return it
+    if (!svg) return '';
+    
     // Simple string replacement to translate all coordinates
     // This is a naive approach that works for our specific SVG format
     return svg.replace(/(x1|x2|cx)="([^"]+)"/g, (match, attr, val) => {
@@ -1014,7 +912,7 @@ export class TrompDiagramGenerator {
     let current = varTerm.parent;
     let lambdasFound = 0;
     
-    // Traverse up the tree
+        // Traverse up the tree
     while (current) {
       if (current.type === TermType.LAM) {
         // Count lambda abstractions as we go up
@@ -1022,6 +920,11 @@ export class TrompDiagramGenerator {
         
         // If this is the binding lambda for our variable, return it
         if (lambdasFound > index) {
+          // Ensure the binding ID is transferred to the variable for coloring
+          if (current.binderId && varTerm) {
+            varTerm.binderId = current.binderId;
+          }
+          
           return current;
         }
       }
@@ -1031,6 +934,7 @@ export class TrompDiagramGenerator {
     }
     
     // If we get here, this is a free variable
+    console.log(`No binding lambda found for variable ${varTerm.name} - it's free`);
     return null;
   }
   
@@ -1103,13 +1007,15 @@ export class TrompDiagramGenerator {
     fs.writeFileSync(svgPath, svg);
     
     // Convert SVG to PNG using sharp
-    sharp(Buffer.from(svg))
+    // Use the default export from the sharp module
+    const sharpFn = (sharp as any).default || sharp;
+    sharpFn(Buffer.from(svg))
       .png()
       .toFile(filePath)
       .then(() => {
         console.log(`PNG saved to ${filePath}`);
       })
-      .catch(err => {
+      .catch((err: Error) => {
         console.error('Error converting SVG to PNG:', err);
       });
     

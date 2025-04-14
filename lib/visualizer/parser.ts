@@ -61,10 +61,22 @@ export class Parser {
    * Break the input string into tokens
    */
   private tokenize(): void {
+    // Safety check for empty source
+    if (!this.source || this.source.length === 0) {
+      this.tokens.push({ type: TokenType.EOF, value: '', pos: 0 });
+      return;
+    }
+    
+    // Limit the source length to prevent memory issues
+    const maxSourceLength = 100000; // 100K characters max
+    const trimmedSource = this.source.length > maxSourceLength ? 
+                          this.source.substring(0, maxSourceLength) : 
+                          this.source;
+    
     let pos = 0;
     
-    while (pos < this.source.length) {
-      const char = this.source[pos];
+    while (pos < trimmedSource.length) {
+      const char = trimmedSource[pos];
       
       // Skip whitespace
       if (/\s/.test(char)) {
@@ -72,18 +84,17 @@ export class Parser {
         continue;
       }
       
-      // Lambda character (λ or \)
-      if (char === 'λ' || char === '\\') {
+      // Lambda character (λ)
+      if (char === 'λ') {
         this.tokens.push({ type: TokenType.LAMBDA, value: 'λ', pos });
         pos++;
         continue;
       }
       
       // Dot or arrow
-      if (char === '.' || (char === '-' && pos + 1 < this.source.length && this.source[pos + 1] === '>')) {
+      if (char === '.') {
         this.tokens.push({ type: TokenType.DOT, value: '.', pos });
-        // Skip two characters for arrow notation
-        pos += (char === '-') ? 2 : 1;
+        pos++;
         continue;
       }
       
@@ -100,7 +111,7 @@ export class Parser {
         continue;
       }
       
-      // Variables - allow alphanumeric plus some special characters
+      // Variables - can be alphanumeric or some special characters
       if (/[a-zA-Z0-9_'+*\-/]/.test(char)) {
         let value = '';
         const startPos = pos;
@@ -118,7 +129,6 @@ export class Parser {
       pos++;
     }
     
-    // Add EOF token
     this.tokens.push({ type: TokenType.EOF, value: '', pos });
   }
 

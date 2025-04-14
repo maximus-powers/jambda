@@ -112,7 +112,7 @@ fi
 
 # Generate diagrams
 mkdir -p "$DIAGRAM_DIR"
-npx ts-node lib/visualizer/visualize.ts --input "$OUTPUT_FILE" --output "$DIAGRAM_DIR" --format "$FORMAT" \
+NODE_OPTIONS="--max-old-space-size=8192" npx ts-node lib/visualizer/visualize.ts --input "$OUTPUT_FILE" --output "$DIAGRAM_DIR" --format "$FORMAT" \
     --width "$WIDTH" --height "$HEIGHT" $LABEL_OPT $APP_SYMBOLS_OPT
 
 if [ $? -ne 0 ]; then
