@@ -3,7 +3,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = parseFunction;
 const underscore_1 = __importDefault(require("underscore"));
 function formatFunction(args, expression) {
     // Format with λ for lambda in standard lambda calculus notation
@@ -24,4 +23,5 @@ function parseFunction(node, freeVars) {
     }
     return '';
 }
+exports.default = parseFunction;
 //# sourceMappingURL=function-parser.js.map

@@ -3,7 +3,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = nodeParser;
 // Parse AST nodes from UglifyJS into lambda calculus
 const function_parser_1 = __importDefault(require("./function-parser"));
 const return_parser_1 = __importDefault(require("./return-parser"));
@@ -74,4 +73,5 @@ function nodeParser(node, freeVars = []) {
     console.warn('Unsupported node type:', node);
     return '';
 }
+exports.default = nodeParser;
 //# sourceMappingURL=node-parser.js.map

@@ -175,6 +175,9 @@ function processExpression(
     case 'FunctionExpression':
       return processFunctionExpression(expr as estree.ArrowFunctionExpression | estree.FunctionExpression, scope);
       
+    case 'MemberExpression':
+      return processMemberExpression(expr as estree.MemberExpression, scope);
+      
     default:
       throw new Error(`Unsupported expression type: ${expr.type}`);
   }
@@ -276,6 +279,20 @@ function processBinaryExpression(
     case '<':
       // Church less-than (simplified)
       return `((${LAMBDA}m.${LAMBDA}n.(${LAMBDA}a.${LAMBDA}b.b) (m (${LAMBDA}x.(${LAMBDA}a.${LAMBDA}b.a)) (n (${LAMBDA}x.(${LAMBDA}a.${LAMBDA}b.b)) (${LAMBDA}a.${LAMBDA}b.a)))) ${left} ${right})`;
+    
+    case '<=':
+      // Church less-than-or-equal (simplified)
+      return `((${LAMBDA}m.${LAMBDA}n.n (${LAMBDA}x.(${LAMBDA}a.${LAMBDA}b.a)) (m (${LAMBDA}x.(${LAMBDA}a.${LAMBDA}b.b)) (${LAMBDA}a.${LAMBDA}b.a))) ${left} ${right})`;
+      
+    case '>':
+      // Church greater-than (simplified)
+      // Implemented as "not less-than-or-equal"
+      return `((${LAMBDA}p.${LAMBDA}a.${LAMBDA}b.p b a) ((${LAMBDA}m.${LAMBDA}n.n (${LAMBDA}x.(${LAMBDA}a.${LAMBDA}b.a)) (m (${LAMBDA}x.(${LAMBDA}a.${LAMBDA}b.b)) (${LAMBDA}a.${LAMBDA}b.a))) ${left} ${right}))`;
+      
+    case '>=':
+      // Church greater-than-or-equal (simplified)
+      // Implemented as "not less-than"
+      return `((${LAMBDA}p.${LAMBDA}a.${LAMBDA}b.p b a) ((${LAMBDA}m.${LAMBDA}n.(${LAMBDA}a.${LAMBDA}b.b) (m (${LAMBDA}x.(${LAMBDA}a.${LAMBDA}b.a)) (n (${LAMBDA}x.(${LAMBDA}a.${LAMBDA}b.b)) (${LAMBDA}a.${LAMBDA}b.a)))) ${left} ${right}))`;
       
     // For other operators, we'd need more complex implementations
     // These are just placeholders for basic arithmetic
@@ -384,4 +401,45 @@ function processFunctionExpression(
   // Construct the lambda abstraction
   const paramStr = params.map(param => `${LAMBDA}${param}`).join('.');
   return `(${paramStr}.${bodyExpr})`;
+}
+
+/**
+ * Process a member expression (obj.prop) to lambda calculus
+ */
+function processMemberExpression(
+  memberExpr: estree.MemberExpression,
+  scope: Map<string, number>
+): string {
+  const object = processExpression(memberExpr.object as estree.Expression, scope);
+  
+  // Handle common array methods
+  if (memberExpr.property.type === 'Identifier') {
+    const propName = memberExpr.property.name;
+    
+    // Implementation for common array methods
+    switch (propName) {
+      case 'map':
+        // Create a lambda for the map operation
+        // map as a higher-order function in lambda calculus
+        return `((${LAMBDA}arr.${LAMBDA}f.arr f) ${object})`;
+        
+      case 'filter':
+        // Create a lambda for the filter operation
+        // filter as a higher-order function in lambda calculus
+        return `((${LAMBDA}arr.${LAMBDA}pred.arr (${LAMBDA}x.pred x)) ${object})`;
+        
+      default:
+        // For other properties, just use a basic access pattern
+        // This is a simplified approach
+        return `((${LAMBDA}obj.${LAMBDA}prop.obj prop) ${object} (${LAMBDA}x.x))`;
+    }
+  }
+  
+  // For computed properties, try to process the property
+  if (memberExpr.computed && memberExpr.property.type) {
+    const prop = processExpression(memberExpr.property as estree.Expression, scope);
+    return `((${LAMBDA}obj.${LAMBDA}prop.obj prop) ${object} ${prop})`;
+  }
+  
+  throw new Error('Unsupported member expression property type');
 }

@@ -15,23 +15,13 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -53,7 +43,7 @@ var TermType;
     TermType["VAR"] = "var";
     TermType["LAM"] = "lam";
     TermType["APP"] = "app";
-})(TermType || (exports.TermType = TermType = {}));
+})(TermType = exports.TermType || (exports.TermType = {}));
 /**
  * Term representation for lambda calculus
  */
@@ -274,26 +264,26 @@ function assignIndices(term, depth = 0, env = new Map(), binderIds = new Map()) 
 class TrompDiagramGenerator {
     constructor(options = {}) {
         this.options = {
-            unitSize: options.unitSize || 30, // Larger unit size for better visibility
-            lineWidth: options.lineWidth || 3, // Thicker lines for visibility
-            padding: options.padding || 60, // More padding
+            unitSize: options.unitSize || 30,
+            lineWidth: options.lineWidth || 3,
+            padding: options.padding || 60,
             backgroundColor: options.backgroundColor || '#000000',
             // Keep colors option for compatibility
             colors: options.colors || ['#000000'],
             // Special colors for specific elements
-            textColor: options.textColor || '#f8f8f2', // Light text color
-            operatorColor: options.operatorColor || '#ffb86c', // Orange for operators (+, -, *, /)
-            churchNumeralColor: options.churchNumeralColor || '#bd93f9', // Purple for Church numerals
+            textColor: options.textColor || '#f8f8f2',
+            operatorColor: options.operatorColor || '#ffb86c',
+            churchNumeralColor: options.churchNumeralColor || '#bd93f9',
             // Label positioning
-            labelPadding: options.labelPadding || 5, // Padding around labels
+            labelPadding: options.labelPadding || 5,
             labelOffset: options.labelOffset || 0,
             labelCollisionOffset: options.labelCollisionOffset || 0,
             // Canvas dimensions
-            width: options.width || 1200, // Default canvas width
-            height: options.height || 900, // Default canvas height
+            width: options.width || 1200,
+            height: options.height || 900,
             // Display options
-            showLabels: options.showLabels || false, // Option to show term labels
-            hideApplicationSymbols: options.hideApplicationSymbols || false, // Option to hide @ symbols
+            showLabels: options.showLabels || false,
+            hideApplicationSymbols: options.hideApplicationSymbols || false,
             preserveAspectRatio: options.preserveAspectRatio !== undefined ? options.preserveAspectRatio : true,
             outputDir: options.outputDir || 'diagrams'
         };
@@ -361,10 +351,9 @@ class TrompDiagramGenerator {
             // Calculate the final scaled dimensions with absolute minimum padding
             const scaledWidth = dims.width * scaledUnitSize + this.options.padding * scaleFactor;
             const scaledHeight = dims.height * scaledUnitSize + this.options.padding * scaleFactor;
-            // Properly center the diagram in the image
-            // Calculate exact center position without any additional margins
-            const offsetX = (width - scaledWidth) / 2;
-            const offsetY = (height - scaledHeight) / 2;
+            // Position the diagram in the top left corner of the image
+            const offsetX = 20; // Small margin from left edge
+            const offsetY = 20; // Small margin from top edge
             // Log centering information for debugging
             console.log(`Image size: ${width} x ${height}`);
             console.log(`Scaled diagram size: ${scaledWidth} x ${scaledHeight}`);
@@ -403,7 +392,7 @@ class TrompDiagramGenerator {
         const additionalSpace = size > 50 ? 0.5 : (size > 20 ? 1 : 2);
         // Add minimal additional space for complex expressions to save space
         return {
-            width: width + additionalSpace, // Less extra width for large diagrams
+            width: width + additionalSpace,
             height: height + additionalSpace // Less extra height for large diagrams
         };
     }
@@ -430,7 +419,7 @@ class TrompDiagramGenerator {
             const funcDims = this._getDimensions(term.func);
             const argDims = this._getDimensions(term.arg);
             return {
-                width: funcDims.width + argDims.width, // Sum of widths
+                width: funcDims.width + argDims.width,
                 height: 1 + Math.max(funcDims.height, argDims.height) // 1 for the connecting bar
             };
         }

@@ -446,10 +446,9 @@ export class TrompDiagramGenerator {
     const scaledWidth = dims.width * scaledUnitSize + this.options.padding * scaleFactor;
     const scaledHeight = dims.height * scaledUnitSize + this.options.padding * scaleFactor;
     
-    // Properly center the diagram in the image
-    // Calculate exact center position without any additional margins
-    const offsetX = (width - scaledWidth) / 2;
-    const offsetY = (height - scaledHeight) / 2;
+    // Position the diagram in the top left corner of the image
+    const offsetX = 20; // Small margin from left edge
+    const offsetY = 20; // Small margin from top edge
     
     // Log centering information for debugging
     console.log(`Image size: ${width} x ${height}`);

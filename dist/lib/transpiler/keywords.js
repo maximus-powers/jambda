@@ -3,8 +3,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.keywordMapping = void 0;
 exports.keywordMapping = {
-    'true': '(λx.λy.x)', // Church encoding of true
-    'false': '(λx.λy.y)', // Church encoding of false
+    'true': '(λx.λy.x)',
+    'false': '(λx.λy.y)',
     'if': '(λp.λa.λb.p a b)' // Church encoding of if
 };
 //# sourceMappingURL=keywords.js.map

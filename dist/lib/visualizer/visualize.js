@@ -185,45 +185,45 @@ if (require.main === module) {
     // Set visualization options
     const options = {
         outputDir: outputDir,
-        unitSize: 12, // Much smaller unit size for very complex expressions
-        lineWidth: 2, // Thinner lines to save space
-        padding: 10, // Minimal padding to maximize diagram space
-        width: width, // Set width
-        height: height, // Set height
-        backgroundColor: '#282a36', // Dark background
-        preserveAspectRatio: true, // Ensure diagram preserves aspect ratio
+        unitSize: 12,
+        lineWidth: 2,
+        padding: 10,
+        width: width,
+        height: height,
+        backgroundColor: '#282a36',
+        preserveAspectRatio: true,
         // Color palette for individual components - high contrast colors
         colors: [
-            '#ff5555', // Red
-            '#8be9fd', // Cyan
-            '#50fa7b', // Green
-            '#ffb86c', // Orange
-            '#bd93f9', // Purple
-            '#ff79c6', // Pink
-            '#f1fa8c', // Yellow
-            '#5af78e', // Bright Green
-            '#57c7ff', // Light Blue
-            '#ff6ac1', // Bright Pink
-            '#e74c3c', // Crimson
-            '#3498db', // Royal Blue
-            '#2ecc71', // Emerald
-            '#e67e22', // Carrot
-            '#9b59b6', // Amethyst
-            '#f39c12', // Sunflower
-            '#1abc9c', // Turquoise
-            '#d35400', // Pumpkin
-            '#2980b9', // Belize Hole
+            '#ff5555',
+            '#8be9fd',
+            '#50fa7b',
+            '#ffb86c',
+            '#bd93f9',
+            '#ff79c6',
+            '#f1fa8c',
+            '#5af78e',
+            '#57c7ff',
+            '#ff6ac1',
+            '#e74c3c',
+            '#3498db',
+            '#2ecc71',
+            '#e67e22',
+            '#9b59b6',
+            '#f39c12',
+            '#1abc9c',
+            '#d35400',
+            '#2980b9',
             '#27ae60' // Nephritis
         ],
         // Special colors for specific elements
-        operatorColor: '#ffb86c', // Orange for operators (+, -, *, /)
-        churchNumeralColor: '#bd93f9', // Purple for Church numerals
-        textColor: '#f8f8f2', // Light text color
+        operatorColor: '#ffb86c',
+        churchNumeralColor: '#bd93f9',
+        textColor: '#f8f8f2',
         // Label positioning and collision avoidance
-        labelPadding: 8, // Increased padding around labels
-        labelOffset: 20, // Increased offset for variable labels
-        labelCollisionOffset: 15, // Increased offset for collision avoidance
-        showLabels: showLabels, // Show labels if enabled
+        labelPadding: 8,
+        labelOffset: 20,
+        labelCollisionOffset: 15,
+        showLabels: showLabels,
         hideApplicationSymbols: hideAppSymbols // Hide @ symbols
     };
     // Create visualizer and generate diagrams
