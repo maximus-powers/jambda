@@ -31,18 +31,21 @@ pnpm add jambda-calc
 
 ## CLI Usage
 
-After installing the package, you can use the CLI commands:
+After installing the package, you can use the CLI command with different flags:
 
 ### Basic Transpilation
 
 Convert a JavaScript function to lambda calculus notation:
 
 ```bash
-# Basic transpilation (outputs to console)
-jambda --input path/to/function.js
+# Using npx (when installed locally)
+npx jambda-calc --input path/to/function.js
+
+# Or if installed globally
+jambda-calc --input path/to/function.js
 
 # Save output to a file
-jambda --input path/to/function.js --output output.lambda.txt
+npx jambda-calc --input path/to/function.js --output output.lambda.txt
 ```
 
 ### Visualization
@@ -51,43 +54,31 @@ Generate a visual representation of your lambda expression:
 
 ```bash
 # ASCII visualization in terminal
-jambda --input path/to/function.js --visualize
+npx jambda-calc --input path/to/function.js --visualize
 
 # Generate SVG diagram
-jambda --input path/to/function.js --visualize --output-dir diagrams
+npx jambda-calc --input path/to/function.js --visualize --output-dir diagrams
 
 # Generate PNG diagram
-jambda --input path/to/function.js --visualize --output-dir diagrams --format png
-```
-
-### Individual CLI Tools
-
-Jambda also provides separate commands for transpilation and visualization:
-
-```bash
-# Transpile only
-jambda-transpile --input path/to/function.js --output output.lambda.txt
-
-# Visualize only (from lambda calculus file)
-jambda-visualize --input output.lambda.txt --output diagrams --format svg
+npx jambda-calc --input path/to/function.js --visualize --output-dir diagrams --format png
 ```
 
 ### CLI Options
 
 ```
-Main tool (jambda) options:
-  --input, -i       Input JavaScript/TypeScript file
-  --output, -o      Output lambda expression file (optional)
-  --visualize, -v   Visualize the lambda expression
-  --output-dir      Output directory for diagram files (if not provided, displays ASCII in console)
-  --format, -f      Output format for diagrams: svg (default) or png
-  --width, -w       Width of the diagram in pixels (default: 1200)
-  --height, -h      Height of the diagram in pixels (default: 800)
-  --labels, -l      Show term labels in the diagram
-  --hide-app-symbols Hide application (@) symbols (default)
-  --show-app-symbols Show application (@) symbols
-  --debug           Save debug information
-  --help            Show help message
+Options:
+  --input, -i           Input JavaScript/TypeScript file
+  --output, -o          Output lambda expression file (optional)
+  --visualize, -v       Visualize the lambda expression
+  --output-dir          Output directory for diagram files (if not provided, displays ASCII in console)
+  --format, -f          Output format for diagrams: svg (default) or png
+  --width, -w           Width of the diagram in pixels (default: 1200)
+  --height, -h          Height of the diagram in pixels (default: 800)
+  --labels, -l          Show term labels in the diagram
+  --hide-app-symbols    Hide application (@) symbols (default)
+  --show-app-symbols    Show application (@) symbols
+  --debug               Save debug information
+  --help                Show help message
 ```
 
 ## Programmatic Usage
@@ -96,10 +87,8 @@ You can use Jambda-calc in your code for more advanced integration:
 
 ### Transpilation
 
-```javascript
-const { parse } = require('jambda-calc');
-// Or using ESM imports
-// import { parse } from 'jambda-calc';
+```typescript
+import { parse } from 'jambda-calc';
 
 // JavaScript code to transpile
 const jsCode = `
@@ -114,12 +103,9 @@ console.log(lambdaExpression);
 
 ### Visualization
 
-```javascript
-const { parse } = require('jambda-calc');
-const { LambdaVisualizer, renderSVGAsASCII } = require('jambda-calc/dist/lib/visualizer');
-// Or using ESM imports
-// import { parse } from 'jambda-calc';
-// import { LambdaVisualizer, renderSVGAsASCII } from 'jambda-calc/dist/lib/visualizer';
+```typescript
+import { parse } from 'jambda-calc';
+import { LambdaVisualizer, renderSVGAsASCII } from 'jambda-calc/dist/lib/visualizer';
 
 // JavaScript code to transpile
 const jsCode = `
@@ -211,7 +197,9 @@ For more complex expressions, Jambda generates SVG/PNG diagrams with color-coded
 
 When using the visualizer programmatically, you can customize the output:
 
-```javascript
+```typescript
+import { LambdaVisualizer } from 'jambda-calc/dist/lib/visualizer';
+
 const visualizer = new LambdaVisualizer({
   // Sizing
   unitSize: 14,
