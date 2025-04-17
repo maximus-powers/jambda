@@ -63,22 +63,38 @@ npx jambda-calc --input path/to/function.js --visualize --output-dir diagrams
 npx jambda-calc --input path/to/function.js --visualize --output-dir diagrams --format png
 ```
 
+### Visualize Existing Lambda Expressions
+
+Visualize an existing lambda expression without transpilation:
+
+```bash
+# Visualize a lambda expression from a file (ASCII output)
+npx jambda-calc --lambda-input path/to/lambda.txt --visualize
+
+# Short form
+npx jambda-calc -l path/to/lambda.txt -v
+
+# Save as SVG/PNG
+npx jambda-calc --lambda-input path/to/lambda.txt --visualize --output-dir diagrams --format png
+```
+
 ### CLI Options
 
 ```
 Options:
-  --input, -i           Input JavaScript/TypeScript file
-  --output, -o          Output lambda expression file (optional)
-  --visualize, -v       Visualize the lambda expression
-  --output-dir          Output directory for diagram files (if not provided, displays ASCII in console)
-  --format, -f          Output format for diagrams: svg (default) or png
-  --width, -w           Width of the diagram in pixels (default: 1200)
-  --height, -h          Height of the diagram in pixels (default: 800)
-  --labels, -l          Show term labels in the diagram
-  --hide-app-symbols    Hide application (@) symbols (default)
-  --show-app-symbols    Show application (@) symbols
-  --debug               Save debug information
-  --help                Show help message
+  --input, -i            Input JavaScript/TypeScript file
+  --lambda-input, -l     Input file containing lambda expressions (skips transpilation)
+  --output, -o           Output lambda expression file (optional)
+  --visualize, -v        Visualize the lambda expression
+  --output-dir           Output directory for diagram files (if not provided, displays ASCII in console)
+  --format, -f           Output format for diagrams: svg (default) or png
+  --width, -w            Width of the diagram in pixels (default: 1200)
+  --height, -h           Height of the diagram in pixels (default: 800)
+  --labels               Show term labels in the diagram
+  --hide-app-symbols     Hide application (@) symbols (default)
+  --show-app-symbols     Show application (@) symbols
+  --debug                Save debug information
+  --help                 Show help message
 ```
 
 ## Programmatic Usage

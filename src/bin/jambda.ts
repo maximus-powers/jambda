@@ -18,6 +18,7 @@ let outputDir: string | null = null;
 let format = 'svg';
 let visualize = false;
 let saveDebug = false;
+let lambdaInput = false; // Flag to indicate if the input is already a lambda expression
 
 // Visualization options
 let showLabels = false;
@@ -26,17 +27,18 @@ let width = 1200;
 let height = 800;
 
 function showHelp(): void {
-    console.log('Usage: jambda [options]');
+    console.log('Usage: jambda-calc [options]');
     console.log('');
     console.log('Options:');
     console.log('  --input, -i       Input JavaScript/TypeScript file (default: input.js)');
+    console.log('  --lambda-input, -l Input file containing lambda calculus expressions (skips transpilation)');
     console.log('  --output, -o      Output lambda expression file (optional)');
-    console.log('  --visualize, -v   Also visualize the lambda expression (default: false)');
+    console.log('  --visualize, -v   Visualize the lambda expression (default: false)');
     console.log('  --output-dir      Output directory for diagram files (if not provided, displays in console)');
     console.log('  --format, -f      Output format for diagrams: svg (default) or png');
     console.log('  --width, -w       Width of the diagram in pixels (default: 1200)');
     console.log('  --height, -h      Height of the diagram in pixels (default: 800)');
-    console.log('  --labels, -l      Show term labels in the diagram');
+    console.log('  --labels          Show term labels in the diagram');
     console.log('  --hide-app-symbols Hide application (@) symbols (default)');
     console.log('  --show-app-symbols Show application (@) symbols');
     console.log('  --debug           Save debug information');
@@ -48,6 +50,12 @@ for (let i = 0; i < args.length; i++) {
     if (args[i] === '--input' || args[i] === '-i') {
         if (i + 1 < args.length) {
             inputFile = args[i + 1];
+            i++;
+        }
+    } else if (args[i] === '--lambda-input' || args[i] === '--lambda' || args[i] === '-l') {
+        if (i + 1 < args.length) {
+            inputFile = args[i + 1];
+            lambdaInput = true;
             i++;
         }
     } else if (args[i] === '--output' || args[i] === '-o') {
@@ -77,7 +85,7 @@ for (let i = 0; i < args.length; i++) {
             height = parseInt(args[i + 1]);
             i++;
         }
-    } else if (args[i] === '--labels' || args[i] === '-l') {
+    } else if (args[i] === '--labels') {
         showLabels = true;
     } else if (args[i] === '--show-app-symbols') {
         hideAppSymbols = false;
@@ -106,29 +114,37 @@ const colors = {
 // Main function
 async function main(): Promise<void> {
     try {
-        // 1. Transpile the input file
+        // Read the input file
+        const inputContent = fs.readFileSync(inputFile, 'utf-8');
         
-        const inputCode = fs.readFileSync(inputFile, 'utf-8');
+        // Either use the content directly as lambda expression or transpile it
+        let lambdaExpression;
         
-        // Transpile to lambda calculus
-        const lambdaExpression = parse(inputCode);
-        
-        // Save debug information if requested
-        if (saveDebug) {
-            fs.writeFileSync('lambda-debug.txt', lambdaExpression, 'utf-8');
-            console.log(`${colors.gray}Debug info saved to lambda-debug.txt${colors.reset}`);
-        }
-        
-        // Write to file if output file specified
-        if (outputFile) {
-            // Make sure the output directory exists
-            const outputFileDir = path.dirname(outputFile);
-            if (!fs.existsSync(outputFileDir)) {
-                fs.mkdirSync(outputFileDir, { recursive: true });
+        if (lambdaInput) {
+            // Use the file content directly as lambda expression
+            lambdaExpression = inputContent.trim();
+            console.log(`${colors.gray}Using lambda expression from ${inputFile}${colors.reset}`);
+        } else {
+            // Transpile JavaScript to lambda calculus
+            lambdaExpression = parse(inputContent);
+            
+            // Save debug information if requested
+            if (saveDebug) {
+                fs.writeFileSync('lambda-debug.txt', lambdaExpression, 'utf-8');
+                console.log(`${colors.gray}Debug info saved to lambda-debug.txt${colors.reset}`);
             }
             
-            fs.writeFileSync(outputFile, lambdaExpression, 'utf-8');
-            console.log(`${colors.gray}Lambda calculus notation written to ${outputFile}${colors.reset}`);
+            // Write to file if output file specified
+            if (outputFile) {
+                // Make sure the output directory exists
+                const outputFileDir = path.dirname(outputFile);
+                if (!fs.existsSync(outputFileDir)) {
+                    fs.mkdirSync(outputFileDir, { recursive: true });
+                }
+                
+                fs.writeFileSync(outputFile, lambdaExpression, 'utf-8');
+                console.log(`${colors.gray}Lambda calculus notation written to ${outputFile}${colors.reset}`);
+            }
         }
         
         // Display the lambda expression in color
