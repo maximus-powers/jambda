@@ -13,7 +13,7 @@ import { LambdaVisualizer, renderSVGAsASCII } from '../lib/visualizer';
 const args = process.argv.slice(2);
 
 let inputFile = './input.js';
-let outputFile = './lambda-formatted.txt';
+let outputFile: string | null = null;
 let outputDir: string | null = null;
 let format = 'svg';
 let visualize = false;
@@ -30,7 +30,7 @@ function showHelp(): void {
     console.log('');
     console.log('Options:');
     console.log('  --input, -i       Input JavaScript/TypeScript file (default: input.js)');
-    console.log('  --output, -o      Output lambda expression file (default: lambda-formatted.txt)');
+    console.log('  --output, -o      Output lambda expression file (optional)');
     console.log('  --visualize, -v   Also visualize the lambda expression (default: false)');
     console.log('  --output-dir      Output directory for diagram files (if not provided, displays in console)');
     console.log('  --format, -f      Output format for diagrams: svg (default) or png');
@@ -108,18 +108,9 @@ async function main(): Promise<void> {
     try {
         // 1. Transpile the input file
         
-        // Make sure the output directory exists
-        const outputFileDir = path.dirname(outputFile);
-        if (!fs.existsSync(outputFileDir)) {
-            fs.mkdirSync(outputFileDir, { recursive: true });
-        }
-        
-        // Read the input file
-        console.log(`${colors.gray}Reading input file: ${inputFile}${colors.reset}`);
         const inputCode = fs.readFileSync(inputFile, 'utf-8');
         
         // Transpile to lambda calculus
-        console.log(`${colors.gray}Transpiling to lambda calculus...${colors.reset}`);
         const lambdaExpression = parse(inputCode);
         
         // Save debug information if requested
@@ -128,16 +119,23 @@ async function main(): Promise<void> {
             console.log(`${colors.gray}Debug info saved to lambda-debug.txt${colors.reset}`);
         }
         
-        // Write to file
-        fs.writeFileSync(outputFile, lambdaExpression, 'utf-8');
-        console.log(`${colors.gray}Lambda calculus notation written to ${outputFile}${colors.reset}`);
+        // Write to file if output file specified
+        if (outputFile) {
+            // Make sure the output directory exists
+            const outputFileDir = path.dirname(outputFile);
+            if (!fs.existsSync(outputFileDir)) {
+                fs.mkdirSync(outputFileDir, { recursive: true });
+            }
+            
+            fs.writeFileSync(outputFile, lambdaExpression, 'utf-8');
+            console.log(`${colors.gray}Lambda calculus notation written to ${outputFile}${colors.reset}`);
+        }
         
         // Display the lambda expression in color
         console.log(`\n${colors.bright}${colors.purple}λ Expression:${colors.reset} ${colors.purple}${lambdaExpression.replace(/\\/g, 'λ').replace(/->/g, '.').replace(/\(\(([^()]*)\)\)/g, '($1)')}${colors.reset}\n`);
         
         // 2. Visualize if requested
         if (visualize) {
-            console.log(`${colors.gray}Visualizing lambda expression...${colors.reset}`);
             
             // Set visualization options
             const options = {

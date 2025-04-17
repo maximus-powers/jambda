@@ -2,22 +2,24 @@
 
 /**
  * Script to run all examples, display their source code, lambda expression output,
- * and open their PNG visualizations.
+ * and visualize them with ASCII art in the console.
  */
+// eslint-disable-next-line
 const fs = require('fs');
+// eslint-disable-next-line
 const path = require('path');
+// eslint-disable-next-line
 const { execSync } = require('child_process');
-const { parse } = require('../dist/lib/transpiler/index');
 
 // Define the examples to run
 const examples = [
   {
-    name: 'Addition',
+    name: 'Example 1: Addition',
     file: 'add.js',
     description: 'Adds two numbers together using lambda calculus'
   },
   {
-    name: 'Celsius to Fahrenheit',
+    name: 'Example 2: Celsius to Fahrenheit',
     file: 'celsius-to-fahrenheit.js',
     description: 'Converts Celsius to Fahrenheit temperatures'
   }
@@ -34,13 +36,16 @@ const colors = {
 
 // Helper function to print headers
 function printHeader(text) {
+  // eslint-disable-next-line
   console.log(`\n${colors.bright}${colors.blue}==== ${text} =====${colors.reset}\n`);
 }
 
 // Helper function to print source code
 function printSourceCode(filePath) {
   const source = fs.readFileSync(filePath, 'utf-8');
+  // eslint-disable-next-line
   console.log(`${colors.green}Source Code:${colors.reset}`);
+  // eslint-disable-next-line
   console.log(`${colors.cyan}${source}${colors.reset}`);
 }
 
@@ -50,33 +55,27 @@ async function runExamples() {
   
   for (const example of examples) {
     printHeader(example.name);
-    console.log(example.description);
     
-    const exampleFile = path.join(__dirname, '..', 'examples', example.file);
-    // Use a temporary file in the system temp directory for lambda expression
-    const outputFile = path.join(require('os').tmpdir(), `${path.basename(example.file, path.extname(example.file))}.lambda.txt`);
+    // eslint-disable-next-line
+    const exampleFile = path.join(__dirname, example.file);
     
-    // Print source code
     printSourceCode(exampleFile);
     
-    // Run the example (transpile and visualize)
     try {
-      // Run the CLI command without output-dir to show ASCII diagram in console
-      execSync(`node dist/bin/jambda.js --input "${exampleFile}" --output "${outputFile}" --visualize`, { 
-        stdio: 'inherit',
-        cwd: path.join(__dirname, '..')
+      const cmd = `pnpm run start --input "${exampleFile}" --visualize`;
+      
+      execSync(cmd, { 
+        stdio: 'inherit'
       });
     } catch (error) {
+      // eslint-disable-next-line
       console.error(`Error running example: ${error.message}`);
     }
-    
-    // Add a pause between examples
-    console.log('\nContinuing to next example in 2 seconds...');
-    await new Promise(resolve => setTimeout(resolve, 2000));
+
   }
   
   printHeader('ALL EXAMPLES COMPLETED');
 }
 
-// Run the examples
+// eslint-disable-next-line
 runExamples().catch(console.error);

@@ -438,8 +438,8 @@ export class TrompDiagramGenerator {
     svg += `<rect width="${width}" height="${height}" fill="${this.options.backgroundColor}" />`;
     
     // Calculate the final scaled dimensions with absolute minimum padding
-    const scaledWidth = dims.width * scaledUnitSize + this.options.padding * scaleFactor;
-    const scaledHeight = dims.height * scaledUnitSize + this.options.padding * scaleFactor;
+    // const scaledWidth = dims.width * scaledUnitSize + this.options.padding * scaleFactor;
+    // const scaledHeight = dims.height * scaledUnitSize + this.options.padding * scaleFactor;
     
     // Position the diagram in the top left corner of the image
     const offsetX = 20; // Small margin from left edge
