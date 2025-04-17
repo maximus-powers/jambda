@@ -1,169 +1,71 @@
 #!/usr/bin/env node
 
 /**
- * Lambda calculus visualization using John Tromp diagrams
+ * Command-line tool for visualizing lambda calculus expressions
  */
 import fs from 'fs';
 import path from 'path';
-import { TrompDiagramGenerator } from './tromp-diagram';
+import { LambdaVisualizer } from '../lib/visualizer';
 
-interface VisualizerOptions {
-  outputDir?: string;
-  unitSize?: number;
-  lineWidth?: number;
-  padding?: number;
-  width?: number;
-  height?: number;
-  backgroundColor?: string;
-  preserveAspectRatio?: boolean;
-  colors?: string[];
-  operatorColor?: string;
-  churchNumeralColor?: string;
-  textColor?: string;
-  labelPadding?: number;
-  labelOffset?: number;
-  labelCollisionOffset?: number;
-  showLabels?: boolean;
-  hideApplicationSymbols?: boolean;
+// Parse command line arguments
+const args = process.argv.slice(2);
+let inputFile = 'lambda-formatted.txt';
+let outputDir = 'diagrams';
+let format = 'svg';
+
+// Add options
+let showLabels = false;
+let hideAppSymbols = true; // Hide @ application symbols by default
+let width = 1200;
+let height = 800;
+
+// Display usage information
+function showHelp(): void {
+    console.log('Usage: jambda-visualize [options]');
+    console.log('');
+    console.log('Options:');
+    console.log('  --input, -i     Input file path containing lambda expressions (default: lambda-formatted.txt)');
+    console.log('  --output, -o    Output directory for diagrams (default: diagrams)');
+    console.log('  --format, -f    Output format: svg (default) or png');
+    console.log('  --width, -w     Width of the output image in pixels (default: 1200)');
+    console.log('  --height, -h    Height of the output image in pixels (default: 800)');
+    console.log('  --labels, -l    Show term labels in the diagram');
+    console.log('  --hide-app-symbols  Hide application (@) symbols (default)');
+    console.log('  --show-app-symbols  Show application (@) symbols');
+    console.log('  --help          Show this help message');
 }
 
-/**
- * Visualizes a lambda calculus expression as a John Tromp diagram
- */
-class LambdaVisualizer {
-    diagramGenerator: TrompDiagramGenerator;
-    outputDir: string;
-
-    constructor(options: VisualizerOptions = {}) {
-        this.diagramGenerator = new TrompDiagramGenerator(options);
-        this.outputDir = options.outputDir || path.join(process.cwd(), 'diagrams');
-    }
-
-    /**
-     * Generate a diagram from a lambda calculus expression
-     * @param lambdaExpression - The lambda calculus expression to visualize
-     * @param outputPath - The path where to save the diagram
-     * @param format - The output format ('svg' or 'png')
-     * @returns The path to the generated diagram
-     */
-    visualize(lambdaExpression: string, outputPath: string, format = 'svg'): string {
-        try {
-            // Ensure output directory exists
-            if (!fs.existsSync(path.dirname(outputPath))) {
-                fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-            }
-
-            // Generate and save the diagram
-            if (format === 'svg') {
-                return this.diagramGenerator.saveSVG(lambdaExpression, outputPath);
-            } else if (format === 'png') {
-                return this.diagramGenerator.savePNG(lambdaExpression, outputPath);
-            } else {
-                throw new Error(`Unsupported format: ${format}`);
-            }
-        } catch (error) {
-            console.error('Error generating diagram:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Visualize a lambda calculus expression from a file
-     * @param inputFile - Path to the file containing lambda expressions
-     * @param outputDir - Directory to save the generated diagrams
-     * @param format - The output format ('svg' or 'png')
-     * @returns Paths to all generated diagrams
-     */
-    visualizeFromFile(inputFile: string, outputDir = this.outputDir, format = 'svg'): string[] {
-        try {
-            // Read the input file
-            const content = fs.readFileSync(inputFile, 'utf8');
-            
-            // Split by line and process each expression
-            const expressions = content.split('\n')
-                .map(line => line.trim())
-                .filter(line => line && !line.startsWith('#') && !line.startsWith('//'));
-            
-            // Ensure output directory exists
-            if (!fs.existsSync(outputDir)) {
-                fs.mkdirSync(outputDir, { recursive: true });
-            }
-            
-            // Generate a diagram for each expression
-            const outputPaths: string[] = [];
-            for (let i = 0; i < expressions.length; i++) {
-                const expr = expressions[i];
-                const outputPath = path.join(outputDir, `diagram_${i + 1}.${format}`);
-                this.visualize(expr, outputPath, format);
-                outputPaths.push(outputPath);
-            }
-            
-            return outputPaths;
-        } catch (error) {
-            console.error('Error processing file:', error);
-            throw error;
-        }
+// Parse arguments
+for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--input' || args[i] === '-i') {
+        inputFile = args[i + 1];
+        i++;
+    } else if (args[i] === '--output' || args[i] === '-o') {
+        outputDir = args[i + 1];
+        i++;
+    } else if (args[i] === '--format' || args[i] === '-f') {
+        format = args[i + 1].toLowerCase();
+        i++;
+    } else if (args[i] === '--width' || args[i] === '-w') {
+        width = parseInt(args[i + 1]);
+        i++;
+    } else if (args[i] === '--height' || args[i] === '-h') {
+        height = parseInt(args[i + 1]);
+        i++;
+    } else if (args[i] === '--labels' || args[i] === '-l') {
+        showLabels = true;
+    } else if (args[i] === '--show-app-symbols') {
+        hideAppSymbols = false;
+    } else if (args[i] === '--hide-app-symbols') {
+        hideAppSymbols = true;
+    } else if (args[i] === '--help') {
+        showHelp();
+        process.exit(0);
     }
 }
 
-// Direct execution support
-if (require.main === module) {
-    // Parse command line arguments
-    const args = process.argv.slice(2);
-    let inputFile = 'lambda-formatted.txt';
-    let outputDir = 'diagrams';
-    let format = 'svg';
-    
-    // Add options
-    let showLabels = false;
-    let hideAppSymbols = true; // Hide @ application symbols by default
-    let width = 1200;
-    let height = 800;
-    
-    for (let i = 0; i < args.length; i++) {
-        if (args[i] === '--input' || args[i] === '-i') {
-            inputFile = args[i + 1];
-            i++;
-        } else if (args[i] === '--output' || args[i] === '-o') {
-            outputDir = args[i + 1];
-            i++;
-        } else if (args[i] === '--format' || args[i] === '-f') {
-            format = args[i + 1].toLowerCase();
-            i++;
-        } else if (args[i] === '--width' || args[i] === '-w') {
-            width = parseInt(args[i + 1]);
-            i++;
-        } else if (args[i] === '--height' || args[i] === '-h') {
-            height = parseInt(args[i + 1]);
-            i++;
-        } else if (args[i] === '--labels' || args[i] === '-l') {
-            showLabels = true;
-        } else if (args[i] === '--show-app-symbols') {
-            hideAppSymbols = false;
-        } else if (args[i] === '--hide-app-symbols') {
-            hideAppSymbols = true;
-        } else if (args[i] === '--help') {
-            showHelp();
-            process.exit(0);
-        }
-    }
-    
-    // Display usage information
-    function showHelp(): void {
-        console.log('Usage: node visualize.js [options]');
-        console.log('');
-        console.log('Options:');
-        console.log('  --input, -i     Input file path containing lambda expressions (default: lambda-formatted.txt)');
-        console.log('  --output, -o    Output directory for diagrams (default: diagrams)');
-        console.log('  --format, -f    Output format: svg (default) or png');
-        console.log('  --width, -w     Width of the output image in pixels (default: 1200)');
-        console.log('  --height        Height of the output image in pixels (default: 800)');
-        console.log('  --labels, -l    Show term labels in the diagram');
-        console.log('  --hide-app-symbols  Hide application (@) symbols (default)');
-        console.log('  --show-app-symbols  Show application (@) symbols');
-        console.log('  --help          Show this help message');
-    }
-    
+// Main function
+async function main(): Promise<void> {
     // Validate input file
     if (!fs.existsSync(inputFile)) {
         console.error(`Error: Input file not found: ${inputFile}`);
@@ -210,7 +112,7 @@ if (require.main === module) {
     }
     
     // Set visualization options
-    const options: VisualizerOptions = {
+    const options = {
         outputDir: outputDir,
         unitSize: 12,                   // Much smaller unit size for very complex expressions
         lineWidth: 2,                   // Thinner lines to save space
@@ -303,4 +205,4 @@ if (require.main === module) {
     }
 }
 
-export { LambdaVisualizer };
+main();

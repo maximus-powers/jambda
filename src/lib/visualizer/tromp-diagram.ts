@@ -319,7 +319,7 @@ interface TrompDiagramOptions {
   showLabels?: boolean;
   hideApplicationSymbols?: boolean;
   preserveAspectRatio?: boolean;
-  outputDir?: string;
+  outputDir?: string | undefined;
 }
 
 /**
@@ -358,7 +358,7 @@ export class TrompDiagramGenerator {
       showLabels: options.showLabels || false,                    // Option to show term labels
       hideApplicationSymbols: options.hideApplicationSymbols || false, // Option to hide @ symbols
       preserveAspectRatio: options.preserveAspectRatio !== undefined ? options.preserveAspectRatio : true,
-      outputDir: options.outputDir || 'diagrams'
+      outputDir: options.outputDir || ""
     };
     
     // Reset label positions for each new diagram
@@ -397,9 +397,7 @@ export class TrompDiagramGenerator {
     // Calculate raw dimensions based on term structure
     const dims = this.calculateDimensions(term);
     
-    // Log term dimensions for debugging
-    console.log(`Term dimensions - width: ${dims.width}, height: ${dims.height}`);
-    console.log(`Term size: ${term.size()}`);
+    // Calculate dimensions silently
     
     // Determine the raw size needed for the diagram without scaling
     // For very complex terms, use even less padding to ensure diagram fits
@@ -418,10 +416,7 @@ export class TrompDiagramGenerator {
       (this.options.height - marginSize) / baseHeight
     ) * safetyFactor; // Additional safety margin based on term complexity
     
-    // Log scaling information for debugging
-    console.log(`Base width: ${baseWidth}, Base height: ${baseHeight}`);
-    console.log(`Scale factor: ${scaleFactor}`);
-    console.log(`Scaled size: ${baseWidth * scaleFactor} x ${baseHeight * scaleFactor}`);
+    // Scale the diagram silently
     
     // For very complex diagrams, we may need to scale down significantly
     // No minimum scale - we prioritize fitting the entire diagram over visibility of details
@@ -450,10 +445,7 @@ export class TrompDiagramGenerator {
     const offsetX = 20; // Small margin from left edge
     const offsetY = 20; // Small margin from top edge
     
-    // Log centering information for debugging
-    console.log(`Image size: ${width} x ${height}`);
-    console.log(`Scaled diagram size: ${scaledWidth} x ${scaledHeight}`);
-    console.log(`Centering offsets: ${offsetX}, ${offsetY}`);
+    // Position the diagram silently
     
     // Create a centered group for the diagram
     svg += `<g transform="translate(${offsetX}, ${offsetY})">`;
@@ -594,7 +586,7 @@ export class TrompDiagramGenerator {
       
       // Add lambda symbol and variable name if labels are enabled
       if (this.options.showLabels) {
-        let varName = term.variable || '';
+        const varName = term.variable || '';
         let labelText = '';
         
         // Special case for Church numerals - show number values
@@ -658,8 +650,9 @@ export class TrompDiagramGenerator {
       const varX = this.options.padding + horizontalGap;
       const varY = this.options.padding;
       
-      // Find the binding lambda for this variable using De Bruijn indices
-      const bindingLambda = this._findBindingLambda(term);
+      // Compute the binding lambda for this variable if needed
+      // We don't use this directly but could for future enhancements
+      // this._findBindingLambda(term);
       
       // Simple calculation directly from the Haskell example
       // Each variable's height is determined solely by its De Bruijn index
@@ -740,9 +733,8 @@ export class TrompDiagramGenerator {
       // Unit size for precise positioning
       const unitSize = this.options.unitSize;
       
-      const lineColor = '#000000';
-      
       // Start building the SVG
+      // Using a consistent black color for all application lines
       let svg = '';
       
       // Calculate the bottom levels of both terms
@@ -991,6 +983,13 @@ export class TrompDiagramGenerator {
    */
   saveSVG(lambdaExpression: string, filePath: string): string {
     const svg = this.generateDiagram(lambdaExpression);
+    
+    // Create directory if it doesn't exist
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    
     fs.writeFileSync(filePath, svg);
     return filePath;
   }
@@ -1007,7 +1006,7 @@ export class TrompDiagramGenerator {
     
     // Convert SVG to PNG using sharp
     // Use the default export from the sharp module
-    const sharpFn = (sharp as any).default || sharp;
+    const sharpFn = (sharp as unknown as { default?: typeof sharp }).default || sharp;
     sharpFn(Buffer.from(svg))
       .png()
       .toFile(filePath)

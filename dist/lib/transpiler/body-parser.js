@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = bodyParser;
 // Enhanced body parser to handle arithmetic operations for diagram.hs compatibility
 const node_parser_1 = __importDefault(require("./node-parser"));
 function bodyParser(body, freeVars = []) {
@@ -13,7 +14,8 @@ function bodyParser(body, freeVars = []) {
     for (const node of body) {
         const parsed = (0, node_parser_1.default)(node, freeVars);
         // Check if it's a return statement
-        if (node.start && node.start.value === 'return') {
+        const typedNode = node;
+        if (typedNode.start && typedNode.start.value === 'return') {
             returnStatement = parsed;
         }
         // Otherwise it's likely a declaration
@@ -29,5 +31,4 @@ function bodyParser(body, freeVars = []) {
     const results = body.map(node => (0, node_parser_1.default)(node, freeVars));
     return results.join('\n\n');
 }
-exports.default = bodyParser;
 //# sourceMappingURL=body-parser.js.map

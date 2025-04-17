@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build output
+dist/
+
+# Examples output
+examples/*.lambda.txt
+examples/*.svg
+examples/*.png
+
+# Debug files
+lambda-debug.txt
+ast-debug.json
+*-debug.*
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Temporary files
+tmp/
+temp/
+backup/
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

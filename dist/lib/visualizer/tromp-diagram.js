@@ -15,13 +15,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -32,6 +42,7 @@ exports.TrompDiagramGenerator = exports.Term = exports.TermType = void 0;
  * Ported from the Haskell implementation to TypeScript
  */
 const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
 // Import sharp in a way that works with both ESM and CommonJS modules
 const sharp_1 = __importDefault(require("sharp"));
 const parser_1 = require("./parser");
@@ -43,7 +54,7 @@ var TermType;
     TermType["VAR"] = "var";
     TermType["LAM"] = "lam";
     TermType["APP"] = "app";
-})(TermType = exports.TermType || (exports.TermType = {}));
+})(TermType || (exports.TermType = TermType = {}));
 /**
  * Term representation for lambda calculus
  */
@@ -264,28 +275,28 @@ function assignIndices(term, depth = 0, env = new Map(), binderIds = new Map()) 
 class TrompDiagramGenerator {
     constructor(options = {}) {
         this.options = {
-            unitSize: options.unitSize || 30,
-            lineWidth: options.lineWidth || 3,
-            padding: options.padding || 60,
+            unitSize: options.unitSize || 30, // Larger unit size for better visibility
+            lineWidth: options.lineWidth || 3, // Thicker lines for visibility
+            padding: options.padding || 60, // More padding
             backgroundColor: options.backgroundColor || '#000000',
             // Keep colors option for compatibility
             colors: options.colors || ['#000000'],
             // Special colors for specific elements
-            textColor: options.textColor || '#f8f8f2',
-            operatorColor: options.operatorColor || '#ffb86c',
-            churchNumeralColor: options.churchNumeralColor || '#bd93f9',
+            textColor: options.textColor || '#f8f8f2', // Light text color
+            operatorColor: options.operatorColor || '#ffb86c', // Orange for operators (+, -, *, /)
+            churchNumeralColor: options.churchNumeralColor || '#bd93f9', // Purple for Church numerals
             // Label positioning
-            labelPadding: options.labelPadding || 5,
+            labelPadding: options.labelPadding || 5, // Padding around labels
             labelOffset: options.labelOffset || 0,
             labelCollisionOffset: options.labelCollisionOffset || 0,
             // Canvas dimensions
-            width: options.width || 1200,
-            height: options.height || 900,
+            width: options.width || 1200, // Default canvas width
+            height: options.height || 900, // Default canvas height
             // Display options
-            showLabels: options.showLabels || false,
-            hideApplicationSymbols: options.hideApplicationSymbols || false,
+            showLabels: options.showLabels || false, // Option to show term labels
+            hideApplicationSymbols: options.hideApplicationSymbols || false, // Option to hide @ symbols
             preserveAspectRatio: options.preserveAspectRatio !== undefined ? options.preserveAspectRatio : true,
-            outputDir: options.outputDir || 'diagrams'
+            outputDir: options.outputDir || ""
         };
         // Reset label positions for each new diagram
         this.labelPositions = [];
@@ -316,9 +327,7 @@ class TrompDiagramGenerator {
             assignIndices(term);
             // Calculate raw dimensions based on term structure
             const dims = this.calculateDimensions(term);
-            // Log term dimensions for debugging
-            console.log(`Term dimensions - width: ${dims.width}, height: ${dims.height}`);
-            console.log(`Term size: ${term.size()}`);
+            // Calculate dimensions silently
             // Determine the raw size needed for the diagram without scaling
             // For very complex terms, use even less padding to ensure diagram fits
             const baseWidth = dims.width * this.options.unitSize + this.options.padding;
@@ -330,10 +339,7 @@ class TrompDiagramGenerator {
             const marginSize = 100; // Larger margin to ensure diagram fits
             // Set an extremely aggressive scaling to ensure the entire diagram fits
             const scaleFactor = Math.min((this.options.width - marginSize) / baseWidth, (this.options.height - marginSize) / baseHeight) * safetyFactor; // Additional safety margin based on term complexity
-            // Log scaling information for debugging
-            console.log(`Base width: ${baseWidth}, Base height: ${baseHeight}`);
-            console.log(`Scale factor: ${scaleFactor}`);
-            console.log(`Scaled size: ${baseWidth * scaleFactor} x ${baseHeight * scaleFactor}`);
+            // Scale the diagram silently
             // For very complex diagrams, we may need to scale down significantly
             // No minimum scale - we prioritize fitting the entire diagram over visibility of details
             // Apply scaling to unit size
@@ -354,10 +360,7 @@ class TrompDiagramGenerator {
             // Position the diagram in the top left corner of the image
             const offsetX = 20; // Small margin from left edge
             const offsetY = 20; // Small margin from top edge
-            // Log centering information for debugging
-            console.log(`Image size: ${width} x ${height}`);
-            console.log(`Scaled diagram size: ${scaledWidth} x ${scaledHeight}`);
-            console.log(`Centering offsets: ${offsetX}, ${offsetY}`);
+            // Position the diagram silently
             // Create a centered group for the diagram
             svg += `<g transform="translate(${offsetX}, ${offsetY})">`;
             // Draw the diagram
@@ -392,7 +395,7 @@ class TrompDiagramGenerator {
         const additionalSpace = size > 50 ? 0.5 : (size > 20 ? 1 : 2);
         // Add minimal additional space for complex expressions to save space
         return {
-            width: width + additionalSpace,
+            width: width + additionalSpace, // Less extra width for large diagrams
             height: height + additionalSpace // Less extra height for large diagrams
         };
     }
@@ -419,7 +422,7 @@ class TrompDiagramGenerator {
             const funcDims = this._getDimensions(term.func);
             const argDims = this._getDimensions(term.arg);
             return {
-                width: funcDims.width + argDims.width,
+                width: funcDims.width + argDims.width, // Sum of widths
                 height: 1 + Math.max(funcDims.height, argDims.height) // 1 for the connecting bar
             };
         }
@@ -480,7 +483,7 @@ class TrompDiagramGenerator {
                stroke="${lineColor}" stroke-width="${this.options.lineWidth * 1.2}" stroke-linecap="round" />`;
             // Add lambda symbol and variable name if labels are enabled
             if (this.options.showLabels) {
-                let varName = term.variable || '';
+                const varName = term.variable || '';
                 let labelText = '';
                 // Special case for Church numerals - show number values
                 if (term.isChurchNumeral && term.numValue !== undefined && !term.parent) {
@@ -533,8 +536,9 @@ class TrompDiagramGenerator {
             const horizontalGap = unitSize * 1.2; // Same as used for lambda abstractions 
             const varX = this.options.padding + horizontalGap;
             const varY = this.options.padding;
-            // Find the binding lambda for this variable using De Bruijn indices
-            const bindingLambda = this._findBindingLambda(term);
+            // Compute the binding lambda for this variable if needed
+            // We don't use this directly but could for future enhancements
+            // this._findBindingLambda(term);
             // Simple calculation directly from the Haskell example
             // Each variable's height is determined solely by its De Bruijn index
             const indexDistance = term.index !== undefined ? (term.index + 1) : 0; // De Bruijn index
@@ -599,8 +603,8 @@ class TrompDiagramGenerator {
             const w = w1 + w2; // Standard width - no extra spacing for applications
             // Unit size for precise positioning
             const unitSize = this.options.unitSize;
-            const lineColor = '#000000';
             // Start building the SVG
+            // Using a consistent black color for all application lines
             let svg = '';
             // Calculate the bottom levels of both terms
             const funcBottom = this.options.padding + h1 * unitSize;
@@ -805,6 +809,11 @@ class TrompDiagramGenerator {
      */
     saveSVG(lambdaExpression, filePath) {
         const svg = this.generateDiagram(lambdaExpression);
+        // Create directory if it doesn't exist
+        const dir = path.dirname(filePath);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
         fs.writeFileSync(filePath, svg);
         return filePath;
     }

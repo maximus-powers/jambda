@@ -73,7 +73,7 @@ interface TrompDiagramOptions {
     showLabels?: boolean;
     hideApplicationSymbols?: boolean;
     preserveAspectRatio?: boolean;
-    outputDir?: string;
+    outputDir?: string | undefined;
 }
 /**
  * Main diagram generator class

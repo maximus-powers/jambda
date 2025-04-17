@@ -1,40 +1,39 @@
-# Jambda - JavaScript to Lambda Calculus Converter
+# Jambda - JavaScript to Lambda Calculus Converter and Visualizer
 
-Jambda is a tool that converts JavaScript functions to Lambda Calculus notation. It parses JavaScript code and generates equivalent lambda calculus expressions with proper mathematical notation and visualizes them as John Tromp diagrams.
+Jambda is a tool that converts JavaScript/TypeScript functions to Lambda Calculus notation and visualizes them as John Tromp diagrams. It parses JavaScript code, generates equivalent lambda calculus expressions, and creates visualizations to help understand the functional structure.
 
 ## Features
 
-- Converts JavaScript functions to lambda calculus notation
+- Converts JavaScript/TypeScript functions to lambda calculus notation
 - Supports various JavaScript constructs:
   - Function declarations and expressions
   - Variable declarations and references
   - Basic arithmetic operations (+, -, *, /)
-  - Math object methods (Math.cos, Math.sin, Math.sqrt, etc.)
-  - Math constants (Math.PI)
-  - Nested functions and scopes
+  - Conditional expressions (ternary)
+  - Arrow functions
+  - Simple nested functions and scopes
 - Formats output in standard mathematical lambda calculus notation
 - Visualizes lambda expressions as authentic John Tromp diagrams (SVG and PNG formats)
   - High-resolution diagrams with dark background
-  - Rich color-coded diagram elements:
-    - Red lines for lambda abstractions (λ)
-    - Green lines for variables
-    - Operator-specific colors:
-      - Cyan for addition (+)
-      - Purple for subtraction (-)
-      - Orange for multiplication (*)
-      - Yellow for division (/)
-      - Pink for math functions
-      - Blue-gray for general applications
-  - Color-matched term labels for improved readability:
-    - Variable names in green
-    - Lambda abstractions with variable names in red
-    - Operation symbols in their respective colors
-    - Numeric constants fully expanded as Church numerals with distinctive purple coloring
+  - ASCII art visualization for terminal display
+  - Proper visualization of lambda abstractions, variables, and applications
 
 ## Installation
 
+### From npm (coming soon)
+
 ```bash
-# Clone the repository (or download it)
+# Install globally
+npm install -g jambda
+
+# Or install as a dev dependency in your project
+npm install --save-dev jambda
+```
+
+### From Source
+
+```bash
+# Clone the repository
 git clone https://github.com/maximuspowers/jambda.git
 cd jambda
 
@@ -42,118 +41,140 @@ cd jambda
 npm install
 # or if you prefer pnpm
 pnpm install
+
+# Build the project
+npm run build
 ```
 
 ## Usage
 
-### Basic Usage
+### Command Line Interface
 
-The easiest way to convert a JavaScript function to formatted lambda calculus is to use the provided shell script:
-
-```bash
-# Make the script executable first
-chmod +x convert-and-format.sh
-
-# Run the conversion
-./convert-and-format.sh [input-file] [output-file]
-```
-
-If no arguments are provided, it reads from `input.js` and outputs to `lambda-formatted.txt`.
-
-### Visualization
-
-The easiest way to convert a JavaScript function to lambda calculus and visualize it is to use the all-in-one conversion and visualization script:
+#### Transpile a JavaScript file to lambda calculus
 
 ```bash
-# Make the script executable first
-chmod +x convert-and-visualize.sh
+# Using the global command
+jambda-transpile --input example.js --output lambda.txt
 
-# Convert JavaScript to lambda calculus and generate diagrams
-./convert-and-visualize.sh --labels
+# Or if installed locally
+npx jambda-transpile --input example.js --output lambda.txt
 ```
 
-This will:
-1. Convert the JavaScript code in `input.js` to lambda calculus
-2. Format the lambda expression for better visualization
-3. Generate a John Tromp diagram in PNG format
-4. Automatically open the diagram (on macOS)
-
-#### Options for convert-and-visualize.sh
+#### Visualize a lambda calculus expression
 
 ```bash
-./convert-and-visualize.sh [options]
+# Using the global command
+jambda-visualize --input lambda.txt --output diagrams --format svg --labels
+
+# Or if installed locally
+npx jambda-visualize --input lambda.txt --output diagrams --format svg --labels
 ```
 
+#### Transpile and visualize in one step
+
+```bash
+# Using the global command
+jambda --input example.js --output lambda.txt --visualize --output-dir diagrams
+
+# Or if installed locally
+npx jambda --input example.js --output lambda.txt --visualize --output-dir diagrams
+
+# Display ASCII art diagram in terminal
+jambda --input example.js --output lambda.txt --visualize
+```
+
+### CLI Options
+
+#### For `jambda-transpile`
+
+```
 Options:
-- `--input, -i`: Input JavaScript file (default: input.js)
-- `--output, -o`: Output lambda expressions file (default: lambda-formatted.txt)
-- `--diagrams, -d`: Output directory for diagrams (default: diagrams)
-- `--format, -f`: Output format: svg or png (default: png)
-- `--labels, -l`: Show term labels in the diagram (recommended for better readability)
-- `--width, -w`: Width of the output image in pixels (default: 1200)
-- `--height, -h`: Height of the output image in pixels (default: 800)
-- `--hide-app-symbols`: Hide application (@) symbols (default)
-- `--show-app-symbols`: Show application (@) symbols
-
-Examples:
-
-```bash
-# Convert with custom input and show labeled diagrams
-./convert-and-visualize.sh --input my-function.js --labels
-
-# Generate SVG diagram with custom dimensions
-./convert-and-visualize.sh --format svg --width 1600 --height 1200
-
-# Show labels and application symbols
-./convert-and-visualize.sh --labels --show-app-symbols
+  --input, -i     Input file (default: input.js)
+  --output, -o    Output lambda expressions file (default: lambda-formatted.txt)
+  --debug, -d     Save debug information (default: false)
+  --help          Show this help message
 ```
 
-You can also run the visualizer directly on lambda calculus expressions:
+#### For `jambda-visualize`
 
-```bash
-node visualize.js --input lambda-formatted.txt --output diagrams --format png --labels
+```
+Options:
+  --input, -i     Input file path containing lambda expressions (default: lambda-formatted.txt)
+  --output, -o    Output directory for diagrams (default: diagrams)
+  --format, -f    Output format: svg (default) or png
+  --width, -w     Width of the output image in pixels (default: 1200)
+  --height, -h    Height of the output image in pixels (default: 800)
+  --labels, -l    Show term labels in the diagram
+  --hide-app-symbols  Hide application (@) symbols (default)
+  --show-app-symbols  Show application (@) symbols
+  --help          Show this help message
 ```
 
-### Manual Usage
+#### For `jambda` (combined tool)
 
-You can also run the conversion steps manually:
-
-1. Convert JavaScript to lambda calculus:
-
-```bash
-node convert.js [input-file] [output-file]
+```
+Options:
+  --input, -i       Input JavaScript/TypeScript file (default: input.js)
+  --output, -o      Output lambda expression file (default: lambda-formatted.txt)
+  --visualize, -v   Also visualize the lambda expression (default: false)
+  --output-dir      Output directory for diagrams (if not provided, displays in terminal)
+  --format, -f      Output format for diagrams: svg (default) or png
+  --width, -w       Width of the diagram in pixels (default: 1200)
+  --height, -h      Height of the diagram in pixels (default: 800)
+  --labels, -l      Show term labels in the diagram
+  --hide-app-symbols Hide application (@) symbols (default)
+  --show-app-symbols Show application (@) symbols
+  --debug           Save debug information
+  --help            Show this help message
 ```
 
-2. Format the lambda expression:
+### JavaScript API
 
-```bash
-# First, copy the output to the expected input file
-cp lambda-parsed.js lambda-output.txt
+You can also use Jambda as a library in your JavaScript/TypeScript projects:
 
-# Then format it
-node lambda-format.js [input-file] [output-file]
-```
+```javascript
+// ESM
+import { transpile, LambdaVisualizer, jambda } from 'jambda';
 
-### Run Example Functions
+// CommonJS
+const { transpile, LambdaVisualizer, jambda } = require('jambda');
 
-Run all the example functions through the converter:
+// Transpile a JavaScript/TypeScript function to lambda calculus
+const jsCode = `
+function add(a, b) {
+  return a + b;
+}`;
 
-```bash
-node run-examples.js
-```
+// Option 1: Using the named export
+const lambdaExpr = transpile(jsCode);
+console.log(lambdaExpr); // λa.λb.(((λm.λn.λf.λx.m f (n f x)) a) b)
 
-This processes several example functions and saves the results to individual files (e.g., `identity_lambda.txt`).
+// Option 2: Using the jambda object
+const lambdaExpr2 = jambda.transpile(jsCode);
 
-### Custom Input and Output Files
+// Visualize a lambda expression and save it to a file
+const outputPath = './diagram.svg';
+jambda.visualize(lambdaExpr, outputPath, {
+  showLabels: true,
+  width: 1200,
+  height: 800
+});
 
-You can specify custom input and output files:
+// Or transpile and visualize in one step
+jambda.transpileAndVisualize(jsCode, outputPath, {
+  showLabels: true
+});
 
-```bash
-# For the converter
-node convert.js path/to/input.js path/to/output.js
+// Use the LambdaVisualizer class directly for more control
+const visualizer = new LambdaVisualizer({
+  showLabels: true, 
+  backgroundColor: '#282a36'
+});
+visualizer.visualize(lambdaExpr, outputPath, 'svg');
 
-# For the formatter
-node lambda-format.js path/to/input.txt path/to/output.txt
+// Generate ASCII art diagram for console output
+const asciiArt = jambda.generateAsciiDiagram(lambdaExpr);
+console.log(asciiArt);
 ```
 
 ## Examples
@@ -168,90 +189,100 @@ function identity(x) {
 
 Lambda calculus notation:
 ```
-λx . x
+λx.x
 ```
 
 ### Church Numeral 2
 
 ```javascript
-function church2() {
-    return function(f) {
-        return function(x) {
-            return f(f(x));
-        };
+function church2(f) {
+    return function(x) {
+        return f(f(x));
     };
 }
 ```
 
 Lambda calculus notation:
 ```
-λf . λx . f (f x)
+λf.λx.(f (f x))
 ```
 
-### Celsius to Fahrenheit
+### Addition Function
 
 ```javascript
-function celsiusToFahrenheit(celsius) {
-    return (celsius * 9/5) + 32;
+function add(a, b) {
+    return a + b;
 }
 ```
 
 Lambda calculus notation:
 ```
-λcelsius . (+ (* celsius (/ 9 5)) 32)
-```
-
-### Math Function Usage
-
-```javascript
-function cosDegrees(angle) {
-    const radians = angle * Math.PI / 180;
-    return Math.cos(radians);
-}
-```
-
-Lambda calculus notation:
-```
-λangle . (λradians . cos radians)(* angle (/ pi 180))
+λa.λb.(((λm.λn.λf.λx.m f (n f x)) a) b)
 ```
 
 ## How It Works
 
-1. The JavaScript code is parsed to an AST (Abstract Syntax Tree) using UglifyJS
-2. Custom parsers traverse the AST and convert different node types to lambda calculus:
-   - Function declarations become lambda abstractions (λx.body)
-   - Variable references become variable names
-   - Function calls become function applications
-   - Binary operations (+, -, *, /) become operator applications
-   - Math methods become function applications
-3. The formatter converts the notation to standard mathematical lambda calculus
+1. The JavaScript/TypeScript code is parsed to an AST using esprima
+2. The AST is traversed and converted into lambda calculus expressions
+3. The lambda expressions are formatted into standard notation (using λ symbol and proper parenthesization)
+4. For visualization, the lambda expression is parsed again and rendered as a John Tromp diagram
 
 ## Project Structure
 
-- `convert.js` - Main conversion script
-- `lambda-format.js` - Formatter for lambda calculus notation
-- `run-examples.js` - Runs multiple examples
-- `visualize.js` - Generates John Tromp diagrams from lambda expressions
-- `convert-and-format.sh` - Script to convert JS to formatted lambda calculus
-- `convert-and-visualize.sh` - Script to convert JS and generate diagrams
-- `lib/` - Contains the core conversion logic:
-  - `index.js` - Entry point for the converter
-  - `body-parser.js` - Parses function bodies
-  - `function-parser.js` - Parses function declarations
-  - `operators.js` - Handles mathematical operations
-  - `node-parser.js` - Parses AST nodes
-  - `return-parser.js` - Parses return statements
-  - `visualizer/` - Contains diagram generation logic:
-    - `parser.js` - Parses lambda expressions into AST
-    - `tromp-diagram.js` - Generates authentic John Tromp diagrams
-    - `visualize.js` - Main visualization module
+- `src/` - Contains the TypeScript source code
+  - `index.ts` - Main entry point for the library
+  - `bin/` - Command-line executables
+    - `transpile.ts` - CLI for transpilation
+    - `visualize.ts` - CLI for visualization
+    - `jambda.ts` - Combined CLI
+  - `lib/` - Core library code
+    - `transpiler/` - Contains the transpilation logic
+      - `index.ts` - Main transpiler API
+      - `body-parser.ts` - Parses function bodies
+      - `function-parser.ts` - Parses function definitions
+      - `keywords.ts` - Handles JavaScript keywords
+      - `node-parser.ts` - Parses AST nodes
+      - `operators.ts` - Implements operators in lambda calculus
+      - `return-parser.ts` - Processes return statements
+    - `visualizer/` - Contains the visualization logic
+      - `index.ts` - Main visualizer API
+      - `tromp-diagram.ts` - Generates John Tromp diagrams
+      - `ascii-renderer.ts` - Renders SVG diagrams as ASCII art
+      - `parser.ts` - Parses lambda expressions for visualization
 
 ## Limitations
 
-- Does not handle all JavaScript features (loops, conditionals, objects)
-- Arithmetic operations are represented as function applications, not true lambda calculus encodings
-- Does not perform beta/eta reductions on the output
-- Visualizer does not handle extremely complex lambda expressions well
+- Does not handle all JavaScript features (loops, advanced conditionals, objects, classes)
+- Arithmetic operations are represented using Church encodings which may be complex to read
+- Very complex expressions may result in extremely large diagrams
+
+## Development
+
+The repository is organized as follows:
+
+- `src/` - Contains the TypeScript source code
+- `examples/` - Contains example JS/TS functions for testing
+- `diagrams/` - Default output directory for generated diagrams
+
+To contribute to the project:
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/jambda.git
+cd jambda
+
+# Install dependencies
+npm install
+# or if you prefer pnpm
+pnpm install
+
+# Build the project
+npm run build
+
+# Run the example
+npm run example
+npm run example:vis
+```
 
 ## License
 
@@ -259,6 +290,5 @@ MIT License
 
 ## Acknowledgements
 
-Based on the js-to-lambda library with custom extensions to handle Math functions and formatting.
-
-John Tromp diagrams are based on the visual representation of lambda calculus developed by John Tromp. More information can be found in his paper "Functional Diagrams for Supercombinator Compilation".
+- Based on concepts from various lambda calculus implementations
+- John Tromp diagrams are based on the visual representation of lambda calculus developed by John Tromp

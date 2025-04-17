@@ -1,31 +1,70 @@
 {
+	"name": "jambda-calc",
+	"version": "0.1.0",
+	"description": "Convert JavaScript/TypeScript functions to lambda calculus notation and visualize them",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"bin": {
+		"jambda-transpile": "dist/bin/transpile.js",
+		"jambda-visualize": "dist/bin/visualize.js",
+		"jambda": "dist/bin/jambda.js"
+	},
+	"files": [
+		"dist",
+		"README.md"
+	],
 	"scripts": {
 		"build": "tsc",
-		"lint": "eslint . --ext .ts",
-		"start": "node dist/convert.js",
-		"convert": "ts-node convert.ts",
-		"visualize": "ts-node lib/visualizer/visualize.ts",
-		"pipeline": "./convert-and-visualize.sh"
+		"clean": "rm -rf dist",
+		"rebuild": "npm run clean && npm run build",
+		"lint": "eslint --config eslint.config.mjs src",
+		"transpile": "node dist/bin/transpile.js",
+		"visualize": "node dist/bin/visualize.js",
+		"start": "node dist/bin/jambda.js",
+		"example:add": "npm run start -- --input examples/add.js --output examples/add.lambda.txt --visualize --format png",
+		"example:celsius": "npm run start -- --input examples/celsius-to-fahrenheit.js --output examples/celsius-to-fahrenheit.lambda.txt --visualize --format png",
+		"examples": "node ./scripts/run-examples.js",
+		"prepublishOnly": "npm run rebuild"
 	},
 	"dependencies": {
 		"@types/esprima": "^4.0.6",
 		"archiver": "^7.0.1",
 		"esprima": "^4.0.1",
-		"js-to-lambda": "^0.4.0",
 		"sharp": "^0.34.1",
 		"typescript": "^5.8.3",
 		"uglify-js": "^3.19.3",
 		"underscore": "^1.13.7"
 	},
 	"devDependencies": {
+		"@eslint/js": "^8.57.0",
+		"@typescript-eslint/eslint-plugin": "^6.21.0",
+		"@typescript-eslint/parser": "^6.21.0",
+		"@typescript-eslint/typescript-estree": "^6.21.0",
 		"@types/archiver": "^6.0.3",
 		"@types/estree": "^1.0.7",
 		"@types/node": "^22.14.1",
 		"@types/uglify-js": "^3.17.5",
 		"@types/underscore": "^1.13.0",
-		"@typescript-eslint/eslint-plugin": "^8.29.1",
-		"@typescript-eslint/parser": "^8.29.1",
-		"eslint": "^9.24.0",
+		"eslint": "^8.57.0",
 		"ts-node": "^10.9.2"
-	}
+	},
+	"keywords": [
+		"lambda",
+		"lambda-calculus",
+		"functional",
+		"javascript",
+		"typescript",
+		"transpiler",
+		"visualization"
+	],
+	"author": "",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/maximuspowers/jambda.git"
+	},
+	"bugs": {
+		"url": "https://github.com/maximuspowers/jambda/issues"
+	},
+	"homepage": "https://github.com/maximuspowers/jambda#readme"
 }

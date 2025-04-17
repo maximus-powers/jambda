@@ -1,1 +1,1 @@
-export default function parseFunction(node: any, freeVars: string[]): string;
+export default function parseFunction(node: Record<string, unknown>, freeVars: string[]): string;

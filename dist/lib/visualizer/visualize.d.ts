@@ -22,18 +22,18 @@ interface VisualizerOptions {
 /**
  * Visualizes a lambda calculus expression as a John Tromp diagram
  */
-declare class LambdaVisualizer {
+export declare class LambdaVisualizer {
     diagramGenerator: TrompDiagramGenerator;
     outputDir: string;
     constructor(options?: VisualizerOptions);
     /**
      * Generate a diagram from a lambda calculus expression
      * @param lambdaExpression - The lambda calculus expression to visualize
-     * @param outputPath - The path where to save the diagram
+     * @param outputPath - The path where to save the diagram (optional)
      * @param format - The output format ('svg' or 'png')
-     * @returns The path to the generated diagram
+     * @returns The path to the generated diagram or SVG string if no outputPath
      */
-    visualize(lambdaExpression: string, outputPath: string, format?: string): string;
+    visualize(lambdaExpression: string, outputPath?: string, format?: string): string;
     /**
      * Visualize a lambda calculus expression from a file
      * @param inputFile - Path to the file containing lambda expressions
@@ -43,4 +43,4 @@ declare class LambdaVisualizer {
      */
     visualizeFromFile(inputFile: string, outputDir?: string, format?: string): string[];
 }
-export { LambdaVisualizer };
+export {};

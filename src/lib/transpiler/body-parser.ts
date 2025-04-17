@@ -1,7 +1,7 @@
 // Enhanced body parser to handle arithmetic operations for diagram.hs compatibility
 import nodeParser from './node-parser';
 
-export default function bodyParser(body: any[], freeVars: string[] = []): string {
+export default function bodyParser(body: Array<Record<string, unknown>>, freeVars: string[] = []): string {
   // For lambda calculus output, we need to process statements differently
   // First, extract all variable declarations
   const declarations: string[] = [];
@@ -11,7 +11,8 @@ export default function bodyParser(body: any[], freeVars: string[] = []): string
     const parsed = nodeParser(node, freeVars);
     
     // Check if it's a return statement
-    if (node.start && node.start.value === 'return') {
+    const typedNode = node as { start?: { value?: string } };
+    if (typedNode.start && typedNode.start.value === 'return') {
       returnStatement = parsed;
     } 
     // Otherwise it's likely a declaration
