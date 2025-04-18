@@ -9,10 +9,11 @@
 	},
 	"files": [
 		"dist",
-		"README.md"
+		"README.md",
+		"LICENSE"
 	],
 	"scripts": {
-		"build": "tsc",
+		"build": "tsc && cp -r src/lib/scripts dist/lib/ && chmod +x dist/bin/jambda.js",
 		"clean": "rm -rf dist",
 		"rebuild": "npm run clean && npm run build",
 		"lint": "eslint --config eslint.config.mjs src",
@@ -35,15 +36,16 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^8.57.0",
-		"@typescript-eslint/eslint-plugin": "^6.21.0",
-		"@typescript-eslint/parser": "^6.21.0",
-		"@typescript-eslint/typescript-estree": "^6.21.0",
 		"@types/archiver": "^6.0.3",
 		"@types/estree": "^1.0.7",
 		"@types/node": "^22.14.1",
 		"@types/uglify-js": "^3.17.5",
 		"@types/underscore": "^1.13.0",
+		"@typescript-eslint/eslint-plugin": "^6.21.0",
+		"@typescript-eslint/parser": "^6.21.0",
+		"@typescript-eslint/typescript-estree": "^6.21.0",
 		"eslint": "^8.57.0",
+		"prettier": "3.5.3",
 		"ts-node": "^10.9.2"
 	},
 	"keywords": [

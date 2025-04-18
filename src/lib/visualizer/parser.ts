@@ -1,10 +1,6 @@
-/**
- * Lambda calculus parser for Jambda
- * Converts lambda expressions into a syntax tree to support transpilation 
- * and visualization.
- */
+// lambda calculus parser - converts expressions to syntax tree
 
-// Token definitions
+// token defs
 enum TokenType {
   LAMBDA = 'lambda',
   DOT = 'dot',

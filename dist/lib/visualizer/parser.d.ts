@@ -1,8 +1,3 @@
-/**
- * Lambda calculus parser for Jambda
- * Converts lambda expressions into a syntax tree to support transpilation
- * and visualization.
- */
 interface AbstractionTerm {
     type: 'abstraction';
     variable: string;

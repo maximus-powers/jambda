@@ -1,12 +1,8 @@
 "use strict";
-/**
- * Lambda calculus parser for Jambda
- * Converts lambda expressions into a syntax tree to support transpilation
- * and visualization.
- */
+// lambda calculus parser - converts expressions to syntax tree
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Parser = void 0;
-// Token definitions
+// token defs
 var TokenType;
 (function (TokenType) {
     TokenType["LAMBDA"] = "lambda";

@@ -1,20 +1,12 @@
-/**
- * Jambda - JavaScript to Lambda Calculus Converter and Visualizer
- * A unified library for transpiling JavaScript to lambda calculus
- * and visualizing lambda terms using John Tromp diagrams.
- */
+// jambda - js to lambda converter & visualizer
 
-// Export all from visualizer and transpiler modules
 export * from './lib/transpiler';
 export * from './lib/visualizer';
 
-// Create a unified jambda object with all primary functionality
-import { parse } from './lib/transpiler';
-import { LambdaVisualizer, VisualizerOptions } from './lib/visualizer';
+import { transpile } from './lib/transpiler';
+import { visualize as visualizeExpr, renderSVGAsASCII, VisualizerOptions } from './lib/visualizer';
 
-/**
- * The main Jambda API object with unified functions
- */
+// main api
 export const jambda = {
   /**
    * Transpile JavaScript/TypeScript code to lambda calculus notation
@@ -22,59 +14,59 @@ export const jambda = {
    * @returns Lambda calculus expression as a string
    */
   transpile(code: string): string {
-    return parse(code);
+    return transpile(code);
   },
 
   /**
    * Visualize a lambda calculus expression
    * @param expression The lambda calculus expression to visualize
-   * @param outputPath The output path for the visualization (optional)
    * @param options Visualization options
+   * @param outputPath The output path for the visualization (optional)
    * @returns The path to the generated diagram or the SVG content if no outputPath is provided
    */
-  visualize(expression: string, outputPath?: string, options: VisualizerOptions = {}): string {
-    const visualizer = new LambdaVisualizer(options);
+  visualize(expression: string, options: VisualizerOptions = {}, outputPath?: string): string {
     const format = outputPath?.endsWith('.png') ? 'png' : 'svg';
-    return visualizer.visualize(expression, outputPath, format);
+    return visualizeExpr(expression, options, outputPath, format);
   },
 
   /**
    * Transpile JavaScript/TypeScript code and visualize the resulting lambda expression
    * @param code The JavaScript/TypeScript code to transpile and visualize
-   * @param outputPath The output path for the visualization (optional)
    * @param options Visualization options
+   * @param outputPath The output path for the visualization (optional)
    * @returns The path to the generated diagram or the SVG content if no outputPath is provided
    */
-  transpileAndVisualize(code: string, outputPath?: string, options: VisualizerOptions = {}): string {
+  transpileAndVisualize(code: string, options: VisualizerOptions = {}, outputPath?: string): string {
     // First transpile the code to lambda calculus
     const lambdaExpression = this.transpile(code);
     
     // Then visualize the expression
-    return this.visualize(lambdaExpression, outputPath, options);
+    return this.visualize(lambdaExpression, options, outputPath);
   },
 
   /**
    * Generate an ASCII art diagram from a lambda calculus expression
    * @param expression The lambda calculus expression to visualize
+   * @param options Visualization options
    * @returns ASCII art representation of the diagram
    */
-  generateAsciiDiagram(expression: string): string {
-    const visualizer = new LambdaVisualizer();
+  generateAsciiDiagram(expression: string, options: VisualizerOptions = {}): string {
     // First generate SVG, then convert to ASCII
-    const svg = visualizer.visualize(expression);
-    return visualizer.renderSVGAsASCII(svg);
+    const svg = visualizeExpr(expression, options);
+    return renderSVGAsASCII(svg);
   },
 
   /**
    * Transpile JavaScript/TypeScript code and generate an ASCII art diagram
    * @param code The JavaScript/TypeScript code to transpile and visualize
+   * @param options Visualization options
    * @returns ASCII art representation of the diagram
    */
-  transpileAndGenerateAsciiDiagram(code: string): string {
+  transpileAndGenerateAsciiDiagram(code: string, options: VisualizerOptions = {}): string {
     const lambdaExpression = this.transpile(code);
-    return this.generateAsciiDiagram(lambdaExpression);
+    return this.generateAsciiDiagram(lambdaExpression, options);
   }
 };
 
-// Default export for CommonJS compatibility
+// for commonjs
 export default jambda;

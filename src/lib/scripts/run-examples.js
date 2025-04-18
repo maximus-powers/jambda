@@ -62,7 +62,13 @@ async function runExamples() {
     printSourceCode(exampleFile);
     
     try {
-      const cmd = `pnpm run start --input "${exampleFile}" --visualize`;
+      // Use the appropriate command based on how this script is executed
+      // Use global process object from Node.js
+      /* global process */
+      const isNpx = process.env.npm_lifecycle_event === undefined;
+      const cmd = isNpx 
+        ? `node "${path.join(path.dirname(process.argv[1]), '../../bin/jambda.js')}" --input "${exampleFile}" --visualize` 
+        : `pnpm run start --input "${exampleFile}" --visualize`;
       
       execSync(cmd, { 
         stdio: 'inherit'

@@ -6,14 +6,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = parseFunction;
 const underscore_1 = __importDefault(require("underscore"));
 function formatFunction(args, expression) {
-    // Format with λ for lambda in standard lambda calculus notation
+    // format with λ notation
     return '(λ' + args.join('.λ') + '.' + expression + ')';
 }
 function parseFunction(node, freeVars) {
-    // Dynamic import to avoid circular dependencies
+    // avoid circular deps
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const bodyParser = require('./body-parser').default;
-    // Type assertion for specific node properties
+    // type assertion
     const typedNode = node;
     if (typedNode.start && typedNode.start.value === 'function' && typedNode.argnames) {
         const argnames = typedNode.argnames.map((a) => a.name);
@@ -22,7 +22,7 @@ function parseFunction(node, freeVars) {
             throw new Error(`"${collisions[0]}" is already bound to a parent scope!`);
         }
         const parsedBody = bodyParser(typedNode.body, freeVars.concat(argnames));
-        // Format for compatibility with diagram.hs
+        // compat with diagram.hs
         return formatFunction(argnames, parsedBody);
     }
     return '';

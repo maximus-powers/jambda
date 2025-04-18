@@ -33,14 +33,12 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.parse = parse;
+exports.transpile = transpile;
 // General-purpose JavaScript/TypeScript to Lambda calculus transpiler
 const esprima = __importStar(require("esprima"));
-const fs = __importStar(require("fs"));
 const ts = __importStar(require("typescript"));
-// Lambda calculus notation constants
 const LAMBDA = 'λ';
-// Church numerals for common numbers (0 to 10)
+// church nums
 const CHURCH_NUMERALS = {};
 /**
  * Generate Church numerals - λf.λx.f^n(x)
@@ -55,26 +53,21 @@ function generateChurchNumerals(max = 100) {
         CHURCH_NUMERALS[i] = `(${LAMBDA}f.${LAMBDA}x.${inner})`;
     }
 }
-// Generate Church numerals 0-100 when the module is loaded
 generateChurchNumerals();
 /**
  * Main transpilation function that converts JS/TS to lambda calculus
  */
-function parse(code) {
+function transpile(code) {
     try {
         // First determine if it's TypeScript by checking for type annotations
         const isTypeScript = code.includes(':') || code.includes('interface') || code.includes('type ');
         const jsCode = isTypeScript ? transpileTypeScript(code) : code;
-        // Parse the JavaScript code using esprima
         const ast = esprima.parseScript(jsCode);
-        // Save AST for debugging
-        fs.writeFileSync('ast-debug.json', JSON.stringify(ast, null, 2));
         // Find function declarations in the code
         const funcDecl = findFunctionDeclaration(ast);
         if (!funcDecl) {
             throw new Error('No function declaration found in input file');
         }
-        // Convert the function to lambda calculus
         return convertFunctionToLambda(funcDecl);
     }
     catch (error) {

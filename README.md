@@ -137,7 +137,7 @@ const visualizer = new LambdaVisualizer({
   // Optional configuration
   unitSize: 12,
   backgroundColor: '#282a36',
-  showLabels: true
+  showLabels: true,
 });
 
 // Generate SVG visualization
@@ -172,7 +172,7 @@ JavaScript function:
 
 ```javascript
 function celsiusToFahrenheit(c) {
-  return (c * 9/5) + 32;
+  return (c * 9) / 5 + 32;
 }
 ```
 
@@ -221,22 +221,22 @@ const visualizer = new LambdaVisualizer({
   unitSize: 14,
   lineWidth: 2,
   padding: 20,
-  width: 1200, 
+  width: 1200,
   height: 800,
-  
+
   // Colors
   backgroundColor: '#282a36',
   colors: ['#ff5555', '#8be9fd', '#50fa7b', '#ffb86c', '#bd93f9'],
   textColor: '#f8f8f2',
-  
+
   // Special element colors
   operatorColor: '#ffb86c',
   churchNumeralColor: '#bd93f9',
-  
+
   // Options
   showLabels: true,
   hideApplicationSymbols: true,
-  preserveAspectRatio: true
+  preserveAspectRatio: true,
 });
 ```
 
@@ -251,7 +251,10 @@ const visualizer = new LambdaVisualizer({
 The package includes several example functions you can run:
 
 ```bash
-# Run all examples
+# Run all examples with the CLI command
+jambda-calc examples
+
+# Or using npm scripts
 npm run examples
 
 # Run specific examples

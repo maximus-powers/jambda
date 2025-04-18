@@ -1,30 +1,26 @@
-// Parse AST nodes from UglifyJS into lambda calculus
+// parse ast nodes to lambda calc
 import functionParser from './function-parser';
 import returnParser from './return-parser';
 import { operatorMapping } from './operators';
 
-/**
- * Parse different node types from JavaScript AST to lambda calculus
- */
+// parse diff node types from js ast
 export default function nodeParser(node: unknown, freeVars: string[] = []): string {
-  // Base case: handle primitive values
+  // primitive values
   if (typeof node === 'string' || typeof node === 'number' || typeof node === 'boolean') {
     return String(node);
   }
   
-  // Handle undefined node
   if (!node) return '';
   
-  // Type guard for object type
   if (node === null || typeof node !== 'object') {
     return '';
   }
 
-  // Safe type casting for node properties
+  // type casting
   const typedNode = node as Record<string, unknown>;
   const startNode = typedNode.start as { value?: string } | undefined;
   
-  // Different parsing strategies based on node type
+  // parsing based on node type
   if (startNode && startNode.value === 'function') {
     return functionParser(typedNode as Record<string, unknown>, freeVars);
   }

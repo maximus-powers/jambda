@@ -4,29 +4,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = nodeParser;
-// Parse AST nodes from UglifyJS into lambda calculus
+// parse ast nodes to lambda calc
 const function_parser_1 = __importDefault(require("./function-parser"));
 const return_parser_1 = __importDefault(require("./return-parser"));
 const operators_1 = require("./operators");
-/**
- * Parse different node types from JavaScript AST to lambda calculus
- */
+// parse diff node types from js ast
 function nodeParser(node, freeVars = []) {
-    // Base case: handle primitive values
+    // primitive values
     if (typeof node === 'string' || typeof node === 'number' || typeof node === 'boolean') {
         return String(node);
     }
-    // Handle undefined node
     if (!node)
         return '';
-    // Type guard for object type
     if (node === null || typeof node !== 'object') {
         return '';
     }
-    // Safe type casting for node properties
+    // type casting
     const typedNode = node;
     const startNode = typedNode.start;
-    // Different parsing strategies based on node type
+    // parsing based on node type
     if (startNode && startNode.value === 'function') {
         return (0, function_parser_1.default)(typedNode, freeVars);
     }
