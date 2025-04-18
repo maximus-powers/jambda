@@ -4,48 +4,74 @@
  */
 
 /**
- * Convert an SVG diagram to ASCII art
+ * Convert an SVG tromp diagram to ASCII
  * @param svg SVG content to render
  * @param preserveSpacing Whether to preserve spacing between terms (default: true)
  * @returns ASCII art representation of the SVG diagram
  */
 export function renderSVGAsASCII(svg: string, preserveSpacing = true): string {
-  // Extract dimensions from SVG
+  // extract svg dimensions
   const widthMatch = svg.match(/width="([^"]+)"/);
   const heightMatch = svg.match(/height="([^"]+)"/);
   const width = widthMatch ? parseInt(widthMatch[1]) : 1200;
   const height = heightMatch ? parseInt(heightMatch[1]) : 800;
-
-  // Calculate the diagram complexity based on the number of lines in the SVG
   const lineMatches = svg.match(/<line/g);
   const lineCount = lineMatches ? lineMatches.length : 0;
 
-  // Adjust canvas size based on diagram complexity
-  // For larger diagrams, we need a larger canvas to maintain clarity
-  let asciiWidth = preserveSpacing ? 80 : 50; // Base width
-  let asciiHeight = 35; // Base height
+  // Auto-scale canvas size based on SVG dimensions and complexity
+  // Calculate aspect ratio
+  const aspectRatio = width / height;
 
-  // Scale up canvas for larger diagrams
-  if (lineCount > 50) {
-    asciiWidth = preserveSpacing ? 120 : 80; // More width for complex diagrams
-    asciiHeight = 60; // More height for complex diagrams
-  } else if (lineCount > 100) {
-    asciiWidth = preserveSpacing ? 160 : 100; // Even more width for very complex diagrams
-    asciiHeight = 80; // Even more height for very complex diagrams
+  // Get terminal width (default to 100 if we can't determine)
+  const terminalWidth = process.stdout.columns || 100;
+  // Set a reasonable terminal height (default to 40 if we can't determine)
+  const terminalHeight = process.stdout.rows || 40;
+
+  // Check if this is a very complex diagram
+  const isComplexWideDiagram = lineCount > 200 || width > 1000;
+
+  // Start with sensible defaults for a terminal, but accommodate wide diagrams
+  let asciiWidth = Math.min(terminalWidth - 4, isComplexWideDiagram ? 100 : 60);
+  let asciiHeight = Math.min(terminalHeight - 6, isComplexWideDiagram ? 22 : 30);
+
+  // Special handling for wide diagrams (common in church numerals)
+  if (aspectRatio > 2.5) {
+    // Very wide diagram - increase width significantly
+    asciiWidth = Math.min(terminalWidth - 2, 120);
+    asciiHeight = 30; // Increase height to avoid cramping
+  } else if (aspectRatio < 0.7) {
+    // Tall diagram - reduce width
+    asciiWidth = Math.floor(asciiWidth * 0.7);
+    asciiHeight = Math.min(asciiHeight + 5, 35);
   }
 
-  // Calculate scaling factors based on diagram size and preserveSpacing setting
-  // For larger diagrams, we need less aggressive scaling to maintain clarity
-  const scaleFactorX = preserveSpacing
-    ? lineCount > 50
-      ? 1.2
-      : 1.5 // Reduce horizontal scaling for complex diagrams
-    : 1.0;
-  const scaleFactorY = preserveSpacing
-    ? lineCount > 50
-      ? 1.1
-      : 1.3 // Reduce vertical scaling for complex diagrams
-    : 1.0;
+  // Calculate scale factors based on diagram characteristics
+  let scaleFactorX, scaleFactorY;
+
+  if (isComplexWideDiagram) {
+    // For celsius-to-fahrenheit and other wide complex diagrams
+    // Use aggressive scaling but maintain more vertical spacing
+    scaleFactorX = 0.1; // Slightly less aggressive
+    scaleFactorY = 0.1; // Increased vertical spacing
+  } else if (lineCount > 100) {
+    // Very complex diagram
+    scaleFactorX = 0.15;
+    scaleFactorY = 0.2;
+  } else if (lineCount > 50) {
+    // Moderately complex diagram
+    scaleFactorX = 0.2;
+    scaleFactorY = 0.3;
+  } else {
+    // Simple diagram
+    scaleFactorX = 0.3;
+    scaleFactorY = 0.2;
+  }
+
+  // If preserveSpacing is explicitly set, increase vertical spacing further
+  if (preserveSpacing) {
+    scaleFactorY *= 1.2; // 20% more vertical spacing when requested
+    asciiHeight = Math.min(asciiHeight + 5, 40);
+  }
 
   // Create ASCII canvas (2D array of characters)
   const canvas = Array(asciiHeight)
@@ -243,10 +269,17 @@ function trimWhitespace(canvas: string[][]): string[][] {
     }
   }
 
-  // Add more padding around the content
-  minX = Math.max(0, minX - 2);
+  // If we found no content, return the original canvas
+  if (minX > maxX || minY > maxY) {
+    return canvas;
+  }
+
+  // Add less padding for larger diagrams to avoid cutoff
+  const padding = canvas[0].length > 50 ? 1 : 2;
+
+  minX = Math.max(0, minX - padding);
   minY = Math.max(0, minY - 1);
-  maxX = Math.min(canvas[0].length - 1, maxX + 2);
+  maxX = Math.min(canvas[0].length - 1, maxX + padding);
   maxY = Math.min(canvas.length - 1, maxY + 1);
 
   // Create a new canvas with just the content

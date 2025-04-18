@@ -225,8 +225,6 @@ class TrompDiagramGenerator {
             lineWidth: options.lineWidth || 3,
             padding: options.padding || 60,
             backgroundColor: options.backgroundColor || '#000000',
-            width: options.width || 1200,
-            height: options.height || 800,
             preserveAspectRatio: options.preserveAspectRatio !== undefined ? options.preserveAspectRatio : true,
             outputDir: options.outputDir || '',
         };
@@ -362,11 +360,8 @@ class TrompDiagramGenerator {
         return { svg: '', height: 0, width: 0 };
     }
     _translateSVG(svg, x, y) {
-        // For an empty svg, just return it
         if (!svg)
             return '';
-        // Simple string replacement to translate all coordinates
-        // This is a naive approach that works for our specific SVG format
         return svg
             .replace(/(x1|x2|cx)="([^"]+)"/g, (match, attr, val) => {
             return `${attr}="${parseFloat(val) + x}"`;
@@ -380,7 +375,6 @@ class TrompDiagramGenerator {
      */
     saveSVG(lambdaExpression, filePath) {
         const svg = this.generateDiagram(lambdaExpression);
-        // Create directory if it doesn't exist
         const dir = path.dirname(filePath);
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
@@ -394,10 +388,7 @@ class TrompDiagramGenerator {
     savePNG(lambdaExpression, filePath) {
         const svg = this.generateDiagram(lambdaExpression);
         const svgPath = filePath.replace(/\.png$/, '.svg');
-        // First save as SVG
         fs.writeFileSync(svgPath, svg);
-        // Convert SVG to PNG using sharp
-        // Use the default export from the sharp module
         const sharpFn = sharp_1.default.default || sharp_1.default;
         sharpFn(Buffer.from(svg))
             .png()

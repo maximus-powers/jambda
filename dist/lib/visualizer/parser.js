@@ -1,8 +1,6 @@
 "use strict";
-// lambda calculus parser - converts expressions to syntax tree
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Parser = void 0;
-// token defs
 var TokenType;
 (function (TokenType) {
     TokenType["LAMBDA"] = "lambda";
@@ -13,7 +11,7 @@ var TokenType;
     TokenType["EOF"] = "eof";
 })(TokenType || (TokenType = {}));
 /**
- * Parser for lambda calculus expressions
+ * Parser for lambda calculus expressions.
  */
 class Parser {
     constructor(source) {
@@ -24,41 +22,37 @@ class Parser {
         this.tokenize();
         this.advance();
     }
-    /**
-     * Break the input string into tokens
-     */
     tokenize() {
-        // Safety check for empty source
         if (!this.source || this.source.length === 0) {
             this.tokens.push({ type: TokenType.EOF, value: '', pos: 0 });
             return;
         }
-        // Limit the source length to prevent memory issues
         const maxSourceLength = 100000; // 100K characters max
-        const trimmedSource = this.source.length > maxSourceLength ?
-            this.source.substring(0, maxSourceLength) :
-            this.source;
+        if (this.source.length > maxSourceLength) {
+            throw new Error(`Source code exceeds maximum length of ${maxSourceLength} characters`);
+        }
         let pos = 0;
-        while (pos < trimmedSource.length) {
-            const char = trimmedSource[pos];
-            // Skip whitespace
+        while (pos < this.source.length) {
+            const char = this.source[pos];
+            // handle char types
             if (/\s/.test(char)) {
+                // skip whitespace
                 pos++;
                 continue;
             }
-            // Lambda character (λ)
+            // lambda symbol
             if (char === 'λ') {
                 this.tokens.push({ type: TokenType.LAMBDA, value: 'λ', pos });
                 pos++;
                 continue;
             }
-            // Dot or arrow
+            // dot
             if (char === '.') {
                 this.tokens.push({ type: TokenType.DOT, value: '.', pos });
                 pos++;
                 continue;
             }
-            // Parentheses
+            // parens
             if (char === '(') {
                 this.tokens.push({ type: TokenType.LPAREN, value: '(', pos });
                 pos++;
@@ -69,7 +63,7 @@ class Parser {
                 pos++;
                 continue;
             }
-            // Variables - can be alphanumeric or some special characters
+            // vars (alphanumeric and some special)
             if (/[a-zA-Z0-9_'+*\-/]/.test(char)) {
                 let value = '';
                 const startPos = pos;
@@ -80,28 +74,19 @@ class Parser {
                 this.tokens.push({ type: TokenType.VARIABLE, value, pos: startPos });
                 continue;
             }
-            // Skip any other character (including comments and other non-lambda syntax)
+            // skip any other character
             pos++;
         }
         this.tokens.push({ type: TokenType.EOF, value: '', pos });
     }
-    /**
-     * Advance to the next token
-     */
     advance() {
         if (this.position < this.tokens.length) {
             this.current = this.tokens[this.position++];
         }
     }
-    /**
-     * Check if the current token is of the expected type
-     */
     match(type) {
         return this.current.type === type;
     }
-    /**
-     * Consume the current token if it's of the expected type
-     */
     consume(type, errorMessage) {
         if (this.match(type)) {
             const token = this.current;
@@ -111,10 +96,9 @@ class Parser {
         throw new Error(`${errorMessage} at position ${this.current.pos}`);
     }
     /**
-     * Parse a lambda expression
+     * Parse a lambda expression. Converts formal lambda calc into AST for rendering.
      */
     parse() {
-        // Removing extra parentheses from the expression
         const term = this.parseExpression();
         if (!this.match(TokenType.EOF)) {
             throw new Error(`Unexpected token ${this.current.type} at position ${this.current.pos}`);
@@ -125,48 +109,41 @@ class Parser {
      * Parse an expression (abstraction, application, or atomic)
      */
     parseExpression() {
-        // Lambda abstraction
         if (this.match(TokenType.LAMBDA)) {
             return this.parseAbstraction();
         }
-        // Start with an atomic expression, then check for application
         return this.parseApplication();
     }
     /**
      * Parse a lambda abstraction (λx.body)
      */
     parseAbstraction() {
-        // Consume lambda symbol
-        this.consume(TokenType.LAMBDA, "Expected lambda");
-        // Variable name
-        const variable = this.consume(TokenType.VARIABLE, "Expected variable after lambda").value;
-        // Dot separator
-        this.consume(TokenType.DOT, "Expected dot after variable in lambda abstraction");
-        // Body expression
+        this.consume(TokenType.LAMBDA, 'Expected lambda');
+        const variable = this.consume(TokenType.VARIABLE, 'Expected variable after lambda').value;
+        this.consume(TokenType.DOT, 'Expected dot after variable in lambda abstraction');
         const body = this.parseExpression();
         return {
             type: 'abstraction',
             variable,
-            body
+            body,
         };
     }
     /**
      * Parse an application (func arg)
      */
     parseApplication() {
-        // Start with an atomic term
+        // start with atomic term
         let term = this.parseAtomic();
-        // Keep applying terms as long as we have more atomic terms
-        // (applications are left-associative)
-        while (!this.match(TokenType.EOF) && !this.match(TokenType.RPAREN) &&
+        // keep applying terms as long as we have more atomic terms
+        // applications are left-associative
+        while (!this.match(TokenType.EOF) &&
+            !this.match(TokenType.RPAREN) &&
             !this.match(TokenType.DOT)) {
-            // The next term is the argument
             const argument = this.parseAtomic();
-            // Create application node
             term = {
                 type: 'application',
                 left: term,
-                right: argument
+                right: argument,
             };
         }
         return term;
@@ -175,17 +152,15 @@ class Parser {
      * Parse an atomic expression (variable or parenthesized expression)
      */
     parseAtomic() {
-        // Variable
         if (this.match(TokenType.VARIABLE)) {
             const name = this.current.value;
             this.advance();
             return { type: 'variable', name };
         }
-        // Parenthesized expression
         if (this.match(TokenType.LPAREN)) {
-            this.advance(); // Consume left paren
+            this.advance();
             const expr = this.parseExpression();
-            this.consume(TokenType.RPAREN, "Expected closing parenthesis");
+            this.consume(TokenType.RPAREN, 'Expected closing parenthesis');
             return expr;
         }
         throw new Error(`Unexpected token ${this.current.type} at position ${this.current.pos}`);

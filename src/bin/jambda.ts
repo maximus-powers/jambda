@@ -42,7 +42,8 @@ function showHelp(): void {
 if (args.length === 1 && args[0] === 'examples') {
   try {
     const examplesScript = path.join(__dirname, '../lib/scripts/run-examples.js');
-    execSync(`node "${examplesScript}"`, { stdio: 'inherit' });
+    // Use node directly on the script file instead of execSync to avoid duplication
+    require(examplesScript);
     process.exit(0);
   } catch (error) {
     console.error(

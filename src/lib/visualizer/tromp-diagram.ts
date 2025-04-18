@@ -234,8 +234,6 @@ interface TrompDiagramOptions {
   lineWidth?: number;
   padding?: number;
   backgroundColor?: string;
-  width?: number;
-  height?: number;
   preserveAspectRatio?: boolean;
   outputDir?: string | undefined;
 }
@@ -254,8 +252,6 @@ export class TrompDiagramGenerator {
       lineWidth: options.lineWidth || 3,
       padding: options.padding || 60,
       backgroundColor: options.backgroundColor || '#000000',
-      width: options.width || 1200,
-      height: options.height || 800,
       preserveAspectRatio:
         options.preserveAspectRatio !== undefined ? options.preserveAspectRatio : true,
       outputDir: options.outputDir || '',

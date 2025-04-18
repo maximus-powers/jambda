@@ -14,7 +14,7 @@ interface VariableTerm {
 }
 type Term = AbstractionTerm | ApplicationTerm | VariableTerm;
 /**
- * Parser for lambda calculus expressions
+ * Parser for lambda calculus expressions.
  */
 export declare class Parser {
     private source;
@@ -22,24 +22,12 @@ export declare class Parser {
     private position;
     private current;
     constructor(source: string);
-    /**
-     * Break the input string into tokens
-     */
     private tokenize;
-    /**
-     * Advance to the next token
-     */
     private advance;
-    /**
-     * Check if the current token is of the expected type
-     */
     private match;
-    /**
-     * Consume the current token if it's of the expected type
-     */
     private consume;
     /**
-     * Parse a lambda expression
+     * Parse a lambda expression. Converts formal lambda calc into AST for rendering.
      */
     parse(): Term;
     /**

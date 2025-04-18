@@ -38,8 +38,6 @@ interface TrompDiagramOptions {
     lineWidth?: number;
     padding?: number;
     backgroundColor?: string;
-    width?: number;
-    height?: number;
     preserveAspectRatio?: boolean;
     outputDir?: string | undefined;
 }

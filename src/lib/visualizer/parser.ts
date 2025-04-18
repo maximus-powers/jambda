@@ -1,13 +1,10 @@
-// lambda calculus parser - converts expressions to syntax tree
-
-// token defs
 enum TokenType {
   LAMBDA = 'lambda',
   DOT = 'dot',
   VARIABLE = 'variable',
   LPAREN = 'lparen',
   RPAREN = 'rparen',
-  EOF = 'eof'
+  EOF = 'eof',
 }
 
 interface Token {
@@ -36,7 +33,7 @@ interface VariableTerm {
 type Term = AbstractionTerm | ApplicationTerm | VariableTerm;
 
 /**
- * Parser for lambda calculus expressions
+ * Parser for lambda calculus expressions.
  */
 export class Parser {
   private source: string;
@@ -53,121 +50,94 @@ export class Parser {
     this.advance();
   }
 
-  /**
-   * Break the input string into tokens
-   */
   private tokenize(): void {
-    // Safety check for empty source
     if (!this.source || this.source.length === 0) {
       this.tokens.push({ type: TokenType.EOF, value: '', pos: 0 });
       return;
     }
-    
-    // Limit the source length to prevent memory issues
     const maxSourceLength = 100000; // 100K characters max
-    const trimmedSource = this.source.length > maxSourceLength ? 
-                          this.source.substring(0, maxSourceLength) : 
-                          this.source;
-    
+    if (this.source.length > maxSourceLength) {
+      throw new Error(`Source code exceeds maximum length of ${maxSourceLength} characters`);
+    }
+
     let pos = 0;
-    
-    while (pos < trimmedSource.length) {
-      const char = trimmedSource[pos];
-      
-      // Skip whitespace
+    while (pos < this.source.length) {
+      const char = this.source[pos];
+
+      // handle char types
       if (/\s/.test(char)) {
+        // skip whitespace
         pos++;
         continue;
       }
-      
-      // Lambda character (λ)
+      // lambda symbol
       if (char === 'λ') {
         this.tokens.push({ type: TokenType.LAMBDA, value: 'λ', pos });
         pos++;
         continue;
       }
-      
-      // Dot or arrow
+      // dot
       if (char === '.') {
         this.tokens.push({ type: TokenType.DOT, value: '.', pos });
         pos++;
         continue;
       }
-      
-      // Parentheses
+      // parens
       if (char === '(') {
         this.tokens.push({ type: TokenType.LPAREN, value: '(', pos });
         pos++;
         continue;
       }
-      
       if (char === ')') {
         this.tokens.push({ type: TokenType.RPAREN, value: ')', pos });
         pos++;
         continue;
       }
-      
-      // Variables - can be alphanumeric or some special characters
+
+      // vars (alphanumeric and some special)
       if (/[a-zA-Z0-9_'+*\-/]/.test(char)) {
         let value = '';
         const startPos = pos;
-        
         while (pos < this.source.length && /[a-zA-Z0-9_'+*\-/]/.test(this.source[pos])) {
           value += this.source[pos];
           pos++;
         }
-        
         this.tokens.push({ type: TokenType.VARIABLE, value, pos: startPos });
         continue;
       }
-      
-      // Skip any other character (including comments and other non-lambda syntax)
+
+      // skip any other character
       pos++;
     }
-    
+
     this.tokens.push({ type: TokenType.EOF, value: '', pos });
   }
 
-  /**
-   * Advance to the next token
-   */
   private advance(): void {
     if (this.position < this.tokens.length) {
       this.current = this.tokens[this.position++];
     }
   }
-
-  /**
-   * Check if the current token is of the expected type
-   */
   private match(type: TokenType): boolean {
     return this.current.type === type;
   }
-
-  /**
-   * Consume the current token if it's of the expected type
-   */
   private consume(type: TokenType, errorMessage: string): Token {
     if (this.match(type)) {
       const token = this.current;
       this.advance();
       return token;
     }
-    
     throw new Error(`${errorMessage} at position ${this.current.pos}`);
   }
 
   /**
-   * Parse a lambda expression
+   * Parse a lambda expression. Converts formal lambda calc into AST for rendering.
    */
   parse(): Term {
-    // Removing extra parentheses from the expression
     const term = this.parseExpression();
-    
     if (!this.match(TokenType.EOF)) {
       throw new Error(`Unexpected token ${this.current.type} at position ${this.current.pos}`);
     }
-    
     return term;
   }
 
@@ -175,12 +145,9 @@ export class Parser {
    * Parse an expression (abstraction, application, or atomic)
    */
   private parseExpression(): Term {
-    // Lambda abstraction
     if (this.match(TokenType.LAMBDA)) {
       return this.parseAbstraction();
     }
-    
-    // Start with an atomic expression, then check for application
     return this.parseApplication();
   }
 
@@ -188,22 +155,14 @@ export class Parser {
    * Parse a lambda abstraction (λx.body)
    */
   private parseAbstraction(): Term {
-    // Consume lambda symbol
-    this.consume(TokenType.LAMBDA, "Expected lambda");
-    
-    // Variable name
-    const variable = this.consume(TokenType.VARIABLE, "Expected variable after lambda").value;
-    
-    // Dot separator
-    this.consume(TokenType.DOT, "Expected dot after variable in lambda abstraction");
-    
-    // Body expression
+    this.consume(TokenType.LAMBDA, 'Expected lambda');
+    const variable = this.consume(TokenType.VARIABLE, 'Expected variable after lambda').value;
+    this.consume(TokenType.DOT, 'Expected dot after variable in lambda abstraction');
     const body = this.parseExpression();
-    
     return {
       type: 'abstraction',
       variable,
-      body
+      body,
     };
   }
 
@@ -211,25 +170,24 @@ export class Parser {
    * Parse an application (func arg)
    */
   private parseApplication(): Term {
-    // Start with an atomic term
+    // start with atomic term
     let term = this.parseAtomic();
-    
-    // Keep applying terms as long as we have more atomic terms
-    // (applications are left-associative)
-    while (!this.match(TokenType.EOF) && !this.match(TokenType.RPAREN) && 
-           !this.match(TokenType.DOT)) {
-      
-      // The next term is the argument
+
+    // keep applying terms as long as we have more atomic terms
+    // applications are left-associative
+    while (
+      !this.match(TokenType.EOF) &&
+      !this.match(TokenType.RPAREN) &&
+      !this.match(TokenType.DOT)
+    ) {
       const argument = this.parseAtomic();
-      
-      // Create application node
       term = {
         type: 'application',
         left: term,
-        right: argument
+        right: argument,
       };
     }
-    
+
     return term;
   }
 
@@ -237,21 +195,19 @@ export class Parser {
    * Parse an atomic expression (variable or parenthesized expression)
    */
   private parseAtomic(): Term {
-    // Variable
     if (this.match(TokenType.VARIABLE)) {
       const name = this.current.value;
       this.advance();
       return { type: 'variable', name };
     }
-    
-    // Parenthesized expression
+
     if (this.match(TokenType.LPAREN)) {
-      this.advance(); // Consume left paren
+      this.advance();
       const expr = this.parseExpression();
-      this.consume(TokenType.RPAREN, "Expected closing parenthesis");
+      this.consume(TokenType.RPAREN, 'Expected closing parenthesis');
       return expr;
     }
-    
+
     throw new Error(`Unexpected token ${this.current.type} at position ${this.current.pos}`);
   }
 }
